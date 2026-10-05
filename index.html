@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daystar Lost & Found</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ---------- Design tokens (match the Figma file; change colours here only) ---------- */
+:root{
+  --navy:#0B2A5B; --navy-l:#DCE6F7;
+  --gold:#F2B705; --gold-l:#FFF4CC; --gold-d:#7A5600;
+  --ink:#0F172A; --sub:#64748B; --line:#E2E8F0; --bg:#F5F7FA; --white:#fff;
+  --font:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.4}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+svg{flex:none}
+.app{display:flex;min-height:100vh}
+
+/* ---------- Sidebar (laptop) / Tab bar (mobile) ---------- */
+.sidebar{display:none;width:240px;flex:none;background:var(--white);border-right:1px solid var(--line);padding:28px 20px;flex-direction:column;gap:28px;position:sticky;top:0;height:100vh}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-mark{width:40px;height:40px;border-radius:12px;background:var(--navy);display:grid;place-items:center}
+.logo b{display:block;color:var(--navy);font-size:15px;white-space:nowrap}.logo small{color:var(--sub);font-size:12px;font-weight:500}
+.nav{display:flex;flex-direction:column;gap:6px}
+.nav a{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;color:var(--sub);font-weight:500;text-decoration:none;font-size:14px}
+.nav a.on{background:var(--navy-l);color:var(--navy);font-weight:600}
+.help{margin-top:auto;background:var(--gold-l);color:var(--gold-d);padding:16px;border-radius:16px;font-size:12px;display:grid;gap:6px}
+.help b{font-size:14px}
+.tabbar{position:fixed;inset:auto 0 0 0;background:var(--white);border-top:1px solid var(--line);display:flex;justify-content:space-between;padding:10px 16px calc(10px + env(safe-area-inset-bottom));z-index:5}
+.tabbar a{display:grid;justify-items:center;gap:3px;font-size:11px;font-weight:500;color:var(--sub);text-decoration:none;min-width:56px}
+.tabbar a .pill{width:48px;height:32px;border-radius:16px;display:grid;place-items:center}
+.tabbar a.on{color:var(--navy);font-weight:600}
+.tabbar a.report .pill{background:var(--navy)}
+
+/* ---------- Main ---------- */
+main{flex:1;min-width:0;padding:28px 20px 110px;max-width:1280px}
+.topbar{display:flex;gap:16px;align-items:center}
+.search{flex:1;display:flex;align-items:center;gap:10px;background:var(--white);border:1px solid var(--line);border-radius:14px;padding:0 16px}
+.search input{flex:1;border:0;outline:0;padding:15px 0;background:none}
+.search:focus-within{border-color:var(--navy);box-shadow:0 0 0 3px var(--navy-l)}
+.user{display:none;align-items:center;gap:10px;font-weight:600;font-size:14px}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700}
+h1{font-size:28px;line-height:1.2;font-weight:700}
+.lead{color:var(--sub);margin-top:4px}
+.view{display:none}.view.on{display:block}
+#home.on{display:flex;flex-direction:column}
+.back{display:flex;align-items:center;gap:14px;margin-bottom:20px;font-size:20px;font-weight:700}
+.back button{width:40px;height:40px;border-radius:50%;background:var(--white);border:1px solid var(--line);display:grid;place-items:center}
+
+/* Action tiles */
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.tile{display:flex;flex-direction:column;gap:12px;text-align:left;padding:16px;border-radius:20px;transition:transform .15s}
+.tile:hover{transform:translateY(-2px)}
+.tile .ic{width:40px;height:40px;border-radius:50%;display:grid;place-items:center}
+.tile i{font-style:normal}.tile b{font-size:16px;display:block}.tile span{font-size:13px}
+.tile.lost{background:var(--gold-l);color:var(--gold-d)}.tile.lost .ic{background:var(--gold)}
+.tile.found{background:var(--navy);color:#fff}.tile.found span{color:var(--navy-l)}.tile.found .ic{background:#fff}
+
+/* Chips, badges */
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 14px}
+.row h2{font-size:18px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chip{padding:9px 16px;border-radius:100px;background:var(--white);border:1px solid var(--line);color:var(--sub);font-size:13px;font-weight:500;white-space:nowrap}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.badge{display:inline-block;padding:4px 10px;border-radius:100px;font-size:12px;font-weight:600}
+.badge.found{background:var(--navy-l);color:var(--navy)}.badge.lost{background:var(--gold-l);color:var(--gold-d)}
+
+/* Item cards */
+.grid{display:grid;grid-template-columns:1fr;gap:12px}
+.card{display:flex;gap:14px;align-items:center;background:var(--white);border:1px solid var(--line);border-radius:20px;padding:12px;text-align:left;width:100%;transition:box-shadow .15s,transform .15s}
+.card:hover{box-shadow:0 8px 24px rgba(11,42,91,.08);transform:translateY(-2px)}
+.thumb{width:72px;height:72px;border-radius:16px;display:grid;place-items:center;flex:none}
+.thumb.found{background:var(--navy-l);color:var(--navy)}.thumb.lost{background:var(--gold-l);color:var(--gold-d)}
+.card .body{display:grid;gap:5px;min-width:0}
+.card h3{font-size:16px;font-weight:600}
+.meta{display:flex;align-items:center;gap:6px;color:var(--sub);font-size:13px}
+.card .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card .when{display:none;color:var(--sub);font-size:12px}
+.empty{padding:40px 0;text-align:center;color:var(--sub)}
+
+/* Details */
+.detail{display:grid;gap:16px}
+.hero{height:180px;border-radius:24px;display:grid;place-items:center}
+.hero.found{background:var(--navy-l);color:var(--navy)}.hero.lost{background:var(--gold-l);color:var(--gold-d)}
+.title-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.title-row h1{font-size:24px}
+.info{background:var(--white);border:1px solid var(--line);border-radius:20px;padding:16px;display:grid;gap:14px}
+.info div{display:flex;gap:12px;align-items:center;font-weight:500;color:var(--ink)}
+.info svg{color:var(--navy)}
+.desc{color:var(--sub);line-height:1.6}
+.held{background:var(--navy-l);color:var(--navy);padding:14px 16px;border-radius:16px;display:flex;gap:12px;align-items:center}
+.held b{display:block;font-size:14px}.held span{font-size:13px}
+.btns{display:flex;gap:12px}
+.btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:16px 22px;border-radius:14px;font-weight:600;font-size:16px}
+.btn.primary{background:var(--navy);color:#fff;flex:1}.btn.primary:hover{background:#0a2350}
+.btn.ghost{background:var(--white);border:1px solid var(--line);color:var(--navy);font-size:14px}
+
+/* Form */
+.layout{display:grid;gap:16px}
+.form{background:var(--white);border:1px solid var(--line);border-radius:24px;padding:20px;display:grid;gap:18px}
+.seg{display:flex;background:var(--line);border-radius:14px;padding:4px}
+.seg button{flex:1;padding:11px;border-radius:11px;font-weight:600;font-size:14px;color:var(--sub)}
+.seg button.on{background:var(--navy);color:#fff}
+.field{display:grid;gap:6px}.field label{font-size:13px;font-weight:600}
+.input{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:14px;padding:0 14px;background:var(--white)}
+.input:focus-within{border-color:var(--navy);box-shadow:0 0 0 3px var(--navy-l)}
+.input svg{color:var(--sub)}
+.input input,.input select{flex:1;border:0;outline:0;padding:15px 0;background:none;min-width:0}
+.two{display:grid;gap:16px}
+.upload{border:1.5px dashed var(--navy);background:var(--navy-l);color:var(--navy);border-radius:20px;padding:28px 16px;display:grid;justify-items:center;gap:6px;font-weight:600;cursor:pointer}
+.upload small{font-weight:400;font-size:12px}
+.tip{background:var(--gold-l);color:var(--gold-d);border-radius:20px;padding:18px 20px;display:grid;gap:8px;font-size:13px}
+.tip b{font-size:14px}
+
+/* My items */
+.match{background:var(--navy-l);color:var(--navy);border-radius:20px;padding:16px;display:grid;gap:10px;margin:18px 0}
+.match b{display:flex;gap:10px;align-items:center}
+.match .btn{background:var(--navy);color:#fff;font-size:14px;padding:10px 16px;justify-self:start;border-radius:12px}
+.toast{position:fixed;left:50%;bottom:100px;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:10}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+
+/* ---------- Mobile-specific (matches the phone designs) ---------- */
+.home-head{order:-2}.topbar{order:-1;margin:18px 0 0}
+.greet{color:var(--sub);font-weight:500;font-size:14px;margin-bottom:4px}
+.lead,.chips-desk{display:none}
+.chips-mob{margin:0 0 18px}
+.row{margin:0 0 14px}
+.see{color:var(--navy);font-weight:600;font-size:14px;margin-left:auto}.see:hover{text-decoration:underline}
+.m-only{display:inline}.d-only{display:none}
+.hero svg{width:72px;height:72px}
+.btns{position:fixed;left:0;right:0;bottom:0;background:var(--white);border-top:1px solid var(--line);padding:22px 21px calc(22px + env(safe-area-inset-bottom));z-index:6}
+.btn.ghost{width:56px;height:56px;padding:0;border-radius:16px;order:-1}.btn.ghost span{display:none}
+body.on-details .tabbar{display:none}
+body.on-details main{padding-bottom:130px}
+.layout{display:flex;flex-direction:column;gap:18px}
+.form,.side{display:contents}
+.seg{order:1}.upload{order:2}.f-name{order:3}.f-cat{order:4}.two{order:5}.btn.submit{order:6}.tip{order:7}
+.actions{margin:18px 0}
+.tip{display:none}
+
+/* ---------- Laptop layout ---------- */
+@media (min-width:900px){
+  .sidebar{display:flex}.tabbar{display:none}
+  main{padding:32px 40px}
+  .topbar{order:-2;margin:0 0 24px}.home-head{order:-1}
+  .greet,.chips-mob,.see{display:none}
+  .chips-desk{display:flex}.lead{display:block}
+  .row{margin:6px 0 14px}
+  .m-only{display:none}.d-only{display:inline}
+  .hero svg{width:120px;height:120px}
+  .btns{position:static;border:0;background:none;padding:0;z-index:auto}
+  .btn.ghost{width:auto;height:auto;padding:16px 22px;border-radius:14px;order:0}.btn.ghost span{display:inline}
+  body.on-details main{padding-bottom:32px}
+  .layout{display:grid}
+  .form{display:grid}.side{display:grid;gap:16px}.tip{display:grid}
+  .actions{margin:20px 0 28px}
+
+  .user{display:flex}
+  h1{font-size:32px}
+  .actions{gap:20px}
+  .tile{flex-direction:row;align-items:center;gap:16px;padding:18px 20px}
+  .tile .ic{width:48px;height:48px}.tile b{font-size:18px}
+  .grid{grid-template-columns:repeat(3,1fr);gap:20px}
+  .card{flex-direction:column;align-items:stretch;gap:12px}
+  .card .thumb{width:100%;height:112px;border-radius:14px}
+  .card .top{order:-1;position:absolute}
+  .card{position:relative}
+  .card .body{padding:0 4px 4px}
+  .card .when{display:block}
+  .mobile-time{display:none}
+  .card .meta-badge{display:flex;justify-content:space-between;align-items:center}
+  .detail{grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+  .hero{height:420px}.title-row h1{font-size:30px}
+  .layout{grid-template-columns:1fr 360px;gap:28px;align-items:start}
+  .form{padding:28px}.two{grid-template-columns:1fr 1fr}
+  .toast{bottom:40px}
+}
+.card .badge-line{display:flex;justify-content:space-between;align-items:center;gap:8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo"><div class="logo-mark" data-icon="star" data-color="#F2B705" data-size="22"></div><div><b>Daystar University</b><small>Lost &amp; Found</small></div></div>
+    <nav class="nav" id="sideNav"></nav>
+    <div class="help"><span data-icon="help" data-size="22"></span><b>Need help?</b>Visit the Security Office, Main Gate. Open 8 AM – 6 PM.</div>
+  </aside>
+
+  <main>
+    <!-- HOME -->
+    <section class="view" id="home">
+      <div class="home-head">
+        <p class="greet">Welcome back, Matthew</p>
+        <h1>Lost something on campus?</h1>
+        <p class="lead">Report it in under a minute, or browse what has been handed in.</p>
+      </div>
+      <div class="topbar">
+        <label class="search"><span data-icon="search" data-size="20"></span><input id="q" type="search" placeholder="Search keys, phone, wallet…" aria-label="Search items"></label>
+        <div class="user"><div class="avatar">MN</div>Matthew Ng’ang’a</div>
+      </div>
+      <div class="actions">
+        <button class="tile lost" data-go="report" data-kind="lost"><div class="ic" data-icon="search" data-color="#0B2A5B" data-size="22"></div><div><b>I lost something</b><span><i class="m-only">Report &amp; track it</i><i class="d-only">Report it and we will watch for matches</i></span></div></button>
+        <button class="tile found" data-go="report" data-kind="found"><div class="ic" data-icon="plus" data-color="#0B2A5B" data-size="22"></div><div><b>I found something</b><span><i class="m-only">Help return it</i><i class="d-only">Hand it in and help return it</i></span></div></button>
+      </div>
+      <div class="chips chips-mob" id="chipsM"></div>
+      <div class="row"><h2>Recently reported</h2><button class="see" id="seeAll" type="button">See all</button><div class="chips chips-desk" id="chips"></div></div>
+      <div class="grid" id="list"></div>
+    </section>
+
+    <!-- DETAILS -->
+    <section class="view" id="details">
+      <div class="back"><button data-go="home" aria-label="Back" data-icon="back" data-size="20"></button>Item details</div>
+      <div class="detail" id="detailBody"></div>
+    </section>
+
+    <!-- REPORT -->
+    <section class="view" id="report">
+      <div class="back"><button data-go="home" aria-label="Back" data-icon="back" data-size="20"></button>Report an item</div>
+      <div class="layout">
+        <form class="form" id="form">
+          <div class="seg" id="seg"><button type="button" data-kind="lost">I lost it</button><button type="button" data-kind="found" class="on">I found it</button></div>
+          <div class="field f-name"><label for="name">What is it?</label><div class="input"><span data-icon="search" data-size="18"></span><input id="name" required placeholder="e.g. Black wallet"></div></div>
+          <div class="field f-cat"><label>Category</label><div class="chips" id="catChips"></div></div>
+          <div class="two">
+            <div class="field"><label for="where" id="whereLabel">Where did you find it?</label><div class="input"><span data-icon="pin" data-size="18"></span>
+              <select id="where" required><option value="">Select a campus location</option><option>Freedom Corner</option><option>Library</option><option>ICT Labs, 3rd floor</option><option>DAC 104</option><option>Cafeteria</option><option>Gym</option></select></div></div>
+            <div class="field"><label for="when">When?</label><div class="input"><span data-icon="clock" data-size="18"></span><input id="when" type="datetime-local"></div></div>
+          </div>
+          <button class="btn primary submit" type="submit">Submit report</button>
+        </form>
+        <div class="side">
+          <label class="upload"><span data-icon="camera" data-size="32"></span>Add a photo<small>Drag a file here or click to upload</small><input type="file" accept="image/*" hidden></label>
+          <div class="tip"><span data-icon="shield" data-size="22"></span><b>Keep private details private</b>Leave out serial numbers or ID details. We will ask the owner to describe them before handing it over.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MY ITEMS -->
+    <section class="view" id="mine">
+      <h1>My items</h1>
+      <div class="match"><b><span data-icon="check" data-size="20"></span>1 possible match found</b>Someone found an item that looks like your AirPods case.<button class="btn" data-toast="Opening match…">Review match</button></div>
+      <div class="chips" style="margin-bottom:14px"><span class="chip on">Active</span><span class="chip">Resolved</span></div>
+      <div class="grid" id="mineList"></div>
+    </section>
+  </main>
+</div>
+
+<nav class="tabbar" id="tabbar"></nav>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ---------- Icons (Lucide paths) ---------- */
+const P={
+search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+plus:'<path d="M5 12h14M12 5v14"/>',
+home:'<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+user:'<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+back:'<path d="m15 18-6-6 6-6"/>',
+clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+key:'<path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
+phone:'<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
+wallet:'<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+bag:'<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+bottle:'<path d="M10 2h4v3l2 3v12a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V8l2-3z"/>',
+other:'<path d="M12 2H2v10l9.3 9.3a1 1 0 0 0 1.4 0l8.6-8.6a1 1 0 0 0 0-1.4z"/><path d="M7 7h.01"/>',
+msg:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+star:'<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/>',
+camera:'<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/>',
+help:'<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',
+shield:'<path d="M20 13c0 5-3.5 7.5-7.7 9a1 1 0 0 1-.6 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1.2 1.2 0 0 1 1.6 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+check:'<path d="M20 6 9 17l-5-5"/>',
+laptop:'<path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/>'};
+const icon=(n,s=20,c='currentColor')=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`;
+const hydrate=(root=document)=>root.querySelectorAll('[data-icon]').forEach(e=>{e.insertAdjacentHTML('afterbegin',icon(e.dataset.icon,+e.dataset.size||20,e.dataset.color||'currentColor'));e.removeAttribute('data-icon')});
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- Data (replace with your API) ---------- */
+let items=[
+ {id:1,icon:'wallet',cat:'Wallets',catLabel:'Wallets & cards',title:'Black leather wallet',where:'Freedom Corner',full:'Freedom Corner, near the canteen',at:'Found today · 2:30 PM',time:'2h ago',kind:'found',desc:'Brown-black wallet with a few cards inside. Details are kept private so only the real owner can describe them.',held:'Security Desk'},
+ {id:2,icon:'phone',cat:'Phones',title:'Silver iPhone 13',where:'Library',time:'5h ago',kind:'found',desc:'Silver phone with a clear case. Locked, so we could not identify the owner.',held:'Library Front Desk'},
+ {id:3,icon:'key',cat:'Keys',title:'Car keys, red tag',where:'ICT Labs, 3rd floor',time:'Yesterday',kind:'lost',desc:'Toyota key with a red tag and a small bottle opener.',held:''},
+ {id:4,icon:'bag',cat:'Bags',title:'Navy backpack',where:'Cafeteria',time:'Yesterday',kind:'found',desc:'Navy backpack with a laptop sleeve. Left near the window tables.',held:'Security Desk'},
+ {id:5,icon:'bottle',cat:'Bottles',title:'Blue water bottle',where:'Gym',time:'2 days ago',kind:'lost',desc:'Blue steel bottle with a sticker on the side.',held:''},
+ {id:6,icon:'laptop',cat:'Laptops',title:'HP Laptop',where:'DAC 104',time:'2 days ago',kind:'lost',desc:'Silver HP laptop with a navy sleeve and a Daystar sticker on the lid.',held:''}];
+const cats=[['Wallet','Wallets','wallet'],['Phone','Phones','phone'],['Keys','Keys','key'],['Bag','Bags','bag'],['Other','Other','other']];
+const state={filter:'All',q:'',kind:'found',cat:'Wallet',cur:null,all:false};
+const $=s=>document.querySelector(s);
+
+/* ---------- Navigation ---------- */
+const tabs=[['home','Home','home'],['home','Browse','search'],['report','Report','plus'],['mine','My items','list'],['home','Profile','user']];
+function nav(){
+ const v=location.hash.slice(1)||'home';
+ const [view,id]=v.split('/');
+ document.body.classList.toggle('on-details',view==='details');
+ document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id===view));
+ if(view==='details'){state.cur=items.find(i=>i.id==id);renderDetails()}
+ const active=view==='details'?'home':view;
+ $('#sideNav').innerHTML=[['home','Home','home'],['home','Browse items','search'],['report','Report an item','plus'],['mine','My items','list'],['home','Profile','user']]
+  .map(([h,l,i],n)=>`<a href="#${h}" class="${(h===active&&n!==1&&n!==4)?'on':''}">${icon(i,20)}${l}</a>`).join('');
+ $('#tabbar').innerHTML=tabs.map(([h,l,i],n)=>`<a href="#${h}" class="${h===active&&n!==1&&n!==4?'on':''} ${h==='report'?'report':''}"><span class="pill">${icon(i,22,h==='report'?'#fff':'currentColor')}</span>${l}</a>`).join('');
+ window.scrollTo(0,0);
+}
+addEventListener('hashchange',nav);
+
+/* ---------- Render ---------- */
+function card(i){return `<button class="card" data-open="${i.id}">
+ <div class="thumb ${i.kind}">${icon(i.icon,32)}</div>
+ <div class="body"><div class="badge-line"><span class="badge ${i.kind}">${i.kind==='lost'?'Lost':'Found'}</span><span class="when">${esc(i.time)}</span></div>
+ <h3>${esc(i.title)}</h3><div class="meta">${icon('pin',14)}${esc(i.where)}<span class="mobile-time"> · ${esc(i.time)}</span></div></div></button>`}
+function renderList(){
+ const q=state.q.toLowerCase();
+ const r=items.filter(i=>(state.filter==='All'||i.cat===state.filter)&&(!q||(i.title+i.where+i.cat).toLowerCase().includes(q)));
+ const phone=!matchMedia('(min-width:900px)').matches;
+ const shown=(phone&&!state.all&&!q&&state.filter==='All')?r.slice(0,3):r;
+ const sa=$('#seeAll');sa.textContent=state.all?'Show less':'See all';sa.style.visibility=(r.length>3&&!q&&state.filter==='All')?'visible':'hidden';
+ $('#list').innerHTML=r.length?shown.map(card).join(''):'<p class="empty">No items match your search.</p>';
+ const ch=['All','Keys','Phones','Bags','Wallets'].map(c=>`<button class="chip ${c===state.filter?'on':''}" data-f="${c}">${c}</button>`).join('');
+ $('#chips').innerHTML=ch;$('#chipsM').innerHTML=ch;
+}
+function renderDetails(){
+ const i=state.cur;if(!i){location.hash='home';return}
+ $('#detailBody').innerHTML=`<div class="hero ${i.kind}">${icon(i.icon,100)}</div>
+ <div style="display:grid;gap:16px">
+ <div class="title-row"><h1>${esc(i.title)}</h1><span class="badge ${i.kind}">${i.kind==='lost'?'Lost':'Found'}</span></div>
+ <div class="info"><div>${icon('pin',20)}${esc(i.full||i.where)}</div><div>${icon('clock',20)}${esc(i.at||((i.kind==='lost'?'Lost':'Found')+' · '+i.time))}</div><div>${icon('other',20)}${esc(i.catLabel||i.cat)}</div></div>
+ <p class="desc">${esc(i.desc)}</p>
+ ${i.held?`<div class="held">${icon('shield',24)}<div><b><span class="m-only">Held at ${esc(i.held)}</span><span class="d-only">Held safely at the ${esc(i.held)}</span></b><span>Main Gate · Open until 6 PM</span></div></div>`:''}
+ <div class="btns"><button class="btn primary" data-toast="${i.kind==='found'?'Claim request sent':'We have told the owner'}">${i.kind==='found'?'This is mine — Claim it':'I found this'}</button><button class="btn ghost" data-toast="Message sent to Security">${icon('msg',20)}<span>Message finder</span></button></div></div>`;
+}
+function renderMine(){
+ const mine=[['bottle','Blue water bottle','Reported 2 days ago','Searching','lost'],['wallet','Student ID card','Reported 4 days ago','Searching','lost'],['phone','Silver iPhone 13','You listed this today','Awaiting owner','found']];
+ $('#mineList').innerHTML=mine.map(([ic,t,s,st,k])=>`<div class="card"><div class="thumb ${k}">${icon(ic,28)}</div><div class="body"><h3>${t}</h3><div class="meta">${s}</div></div><span class="badge ${k}" style="margin-left:auto">${st}</span></div>`).join('');
+}
+function renderForm(){
+ $('#seg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.kind===state.kind));
+ $('#whereLabel').textContent=state.kind==='lost'?'Where did you lose it?':'Where did you find it?';
+ $('#catChips').innerHTML=cats.map(([c])=>`<button type="button" class="chip ${c===state.cat?'on':''}" data-cat="${c}">${c}</button>`).join('');
+}
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2200)}
+
+/* ---------- Events ---------- */
+document.addEventListener('click',e=>{
+ const t=e.target.closest('[data-go],[data-open],[data-f],[data-cat],[data-kind],[data-toast]');if(!t)return;
+ if(t.dataset.kind&&(t.closest('#seg')||t.dataset.go)){state.kind=t.dataset.kind;renderForm()}
+ if(t.dataset.go)location.hash=t.dataset.go;
+ if(t.dataset.open)location.hash='details/'+t.dataset.open;
+ if(t.dataset.f){state.filter=t.dataset.f;renderList()}
+ if(t.dataset.cat){state.cat=t.dataset.cat;renderForm()}
+ if(t.dataset.toast)toast(t.dataset.toast);
+});
+$('#q').addEventListener('input',e=>{state.q=e.target.value;if((location.hash||'#home')!=='#home')location.hash='home';renderList()});
+$('#form').addEventListener('submit',e=>{
+ e.preventDefault();
+ const cat=cats.find(c=>c[0]===state.cat);
+ items.unshift({id:Date.now(),icon:cat[2],cat:cat[1],title:$('#name').value.trim(),where:$('#where').value,time:'Just now',kind:state.kind,desc:'Reported just now.',held:''});
+ e.target.reset();state.filter='All';renderList();toast('Report submitted — thank you!');location.hash='home';
+});
+document.querySelector('.upload input').addEventListener('change',e=>{if(e.target.files[0])toast('Photo added: '+e.target.files[0].name)});
+
+/* Search placeholder: short on laptop, descriptive on phone (per design) */
+const mq=matchMedia('(min-width:900px)');
+const ph=()=>{$('#q').placeholder=mq.matches?'Search':'Search keys, phone, wallet…'};
+mq.addEventListener('change',()=>{ph();renderList()});ph();
+$('#seeAll').addEventListener('click',()=>{state.all=!state.all;renderList()});
+
+/* ---------- Init ---------- */
+hydrate();renderList();renderMine();renderForm();nav();
+</script>
+</body>
+</html>
