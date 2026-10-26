@@ -3,253 +3,272 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Daystar University · Lost &amp; Found</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<title>Daystar Lost & Found</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* Daystar Lost & Found — navy & gold. Colours live in :root only. */
+/* ---------- Design tokens (match the Figma file; change colours here only) ---------- */
 :root{
   --navy:#0B2A5B; --navy-l:#DCE6F7;
   --gold:#F2B705; --gold-l:#FFF4CC; --gold-d:#7A5600;
   --ink:#0F172A; --sub:#64748B; --line:#E2E8F0; --bg:#F5F7FA; --white:#fff;
-  --danger:#B42318; --danger-l:#FEE4E2;
-  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --font:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
 }
 *{box-sizing:border-box;margin:0}
 body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.4}
-a{color:inherit;text-decoration:none}
-button,input,select,textarea{font:inherit;color:inherit}
+button,input,select{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:none}
 svg{flex:none}
-[hidden]{display:none!important}
-:focus-visible{outline:3px solid var(--navy-l);outline-offset:2px}
 .app{display:flex;min-height:100vh}
 
-/* ---------- Sidebar (laptop) & tab bar (phone) ---------- */
+/* ---------- Sidebar (laptop) / Tab bar (mobile) ---------- */
 .sidebar{display:none;width:240px;flex:none;background:var(--white);border-right:1px solid var(--line);padding:28px 20px;flex-direction:column;gap:28px;position:sticky;top:0;height:100vh}
 .logo{display:flex;align-items:center;gap:12px}
 .logo-mark{width:40px;height:40px;border-radius:12px;background:var(--navy);display:grid;place-items:center}
-.logo b{display:block;color:var(--navy);font-size:15px;white-space:nowrap}
-.logo small{color:var(--sub);font-size:12px;font-weight:500}
+.logo b{display:block;color:var(--navy);font-size:15px;white-space:nowrap}.logo small{color:var(--sub);font-size:12px;font-weight:500}
 .nav{display:flex;flex-direction:column;gap:6px}
-.nav a{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;color:var(--sub);font-weight:500;font-size:14px}
-.nav a:hover{background:var(--bg)}
+.nav a{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;color:var(--sub);font-weight:500;text-decoration:none;font-size:14px}
 .nav a.on{background:var(--navy-l);color:var(--navy);font-weight:600}
-.help{margin-top:auto;background:var(--gold-l);color:var(--gold-d);padding:16px;border-radius:16px;font-size:12px;display:grid;gap:6px;line-height:1.5}
+.help{margin-top:auto;background:var(--gold-l);color:var(--gold-d);padding:16px;border-radius:16px;font-size:12px;display:grid;gap:6px}
 .help b{font-size:14px}
 .tabbar{position:fixed;inset:auto 0 0 0;background:var(--white);border-top:1px solid var(--line);display:flex;justify-content:space-between;padding:10px 16px calc(10px + env(safe-area-inset-bottom));z-index:5}
-.tabbar a{display:grid;justify-items:center;gap:3px;font-size:11px;font-weight:500;color:var(--sub);min-width:56px}
-.tabbar .pill{width:48px;height:32px;border-radius:16px;display:grid;place-items:center}
+.tabbar a{display:grid;justify-items:center;gap:3px;font-size:11px;font-weight:500;color:var(--sub);text-decoration:none;min-width:56px}
+.tabbar a .pill{width:48px;height:32px;border-radius:16px;display:grid;place-items:center}
 .tabbar a.on{color:var(--navy);font-weight:600}
 .tabbar a.report .pill{background:var(--navy)}
-body.has-bar .tabbar{display:none}
 
 /* ---------- Main ---------- */
 main{flex:1;min-width:0;padding:28px 20px 110px;max-width:1280px}
-body.has-bar main{padding-bottom:140px}
-h1{font-size:28px;line-height:1.2;font-weight:700}
-.page-h{font-size:28px}
-.sub-h{font-size:18px;margin-top:8px}
-.lead{color:var(--sub);margin-top:4px}
-.empty{padding:40px 0;text-align:center;color:var(--sub);grid-column:1/-1}
-.err{color:var(--danger);font-size:13px;min-height:0}
-.err:empty{display:none}
-.opt{color:var(--sub);font-weight:400}
-.stack{display:grid;gap:16px}
-.stack>.topbar{margin:0}
-.list{display:grid;gap:12px}
-
-.home{display:flex;flex-direction:column}
-.topbar{display:flex;gap:16px;align-items:center;margin:18px 0 0}
+.topbar{display:flex;gap:16px;align-items:center}
 .search{flex:1;display:flex;align-items:center;gap:10px;background:var(--white);border:1px solid var(--line);border-radius:14px;padding:0 16px}
-.search input{flex:1;border:0;outline:0;padding:15px 0;background:none;min-width:0}
+.search input{flex:1;border:0;outline:0;padding:15px 0;background:none}
 .search:focus-within{border-color:var(--navy);box-shadow:0 0 0 3px var(--navy-l)}
-.user{display:none;align-items:center;gap:10px;font-weight:600;font-size:14px;white-space:nowrap}
+.user{display:none;align-items:center;gap:10px;font-weight:600;font-size:14px}
 .avatar{width:40px;height:40px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:700}
-.avatar.big{width:56px;height:56px;font-size:18px}
-.greet{color:var(--sub);font-weight:500;font-size:14px;margin-bottom:4px}
-.lead,.chips-desk,.d-only{display:none}
-.m-only{display:inline}
-.chips-mob{margin:0 0 18px}
+h1{font-size:28px;line-height:1.2;font-weight:700}
+.lead{color:var(--sub);margin-top:4px}
+.view{display:none}.view.on{display:block}
+#home.on{display:flex;flex-direction:column}
+.back{display:flex;align-items:center;gap:14px;margin-bottom:20px;font-size:20px;font-weight:700}
+.back button{width:40px;height:40px;border-radius:50%;background:var(--white);border:1px solid var(--line);display:grid;place-items:center}
 
 /* Action tiles */
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
-.tile{display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:20px;transition:transform .15s}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.tile{display:flex;flex-direction:column;gap:12px;text-align:left;padding:16px;border-radius:20px;transition:transform .15s}
 .tile:hover{transform:translateY(-2px)}
 .tile .ic{width:40px;height:40px;border-radius:50%;display:grid;place-items:center}
-.tile b{display:block;font-size:16px}
-.tile i{font-style:normal;font-size:13px}
+.tile i{font-style:normal}.tile b{font-size:16px;display:block}.tile span{font-size:13px}
 .tile.lost{background:var(--gold-l);color:var(--gold-d)}.tile.lost .ic{background:var(--gold)}
-.tile.found{background:var(--navy);color:#fff}.tile.found i{color:var(--navy-l)}.tile.found .ic{background:#fff}
+.tile.found{background:var(--navy);color:#fff}.tile.found span{color:var(--navy-l)}.tile.found .ic{background:#fff}
 
-/* Chips, badges, segmented control */
-.row{display:flex;align-items:center;gap:12px;margin:0 0 14px}
+/* Chips, badges */
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 14px}
 .row h2{font-size:18px}
-.see{margin-left:auto;color:var(--navy);font-weight:600;font-size:14px}
 .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .chip{padding:9px 16px;border-radius:100px;background:var(--white);border:1px solid var(--line);color:var(--sub);font-size:13px;font-weight:500;white-space:nowrap}
 .chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
-.badge{display:inline-block;padding:4px 10px;border-radius:100px;font-size:12px;font-weight:600;white-space:nowrap}
-.badge.found,.badge.approved{background:var(--navy-l);color:var(--navy)}
-.badge.lost,.badge.pending{background:var(--gold-l);color:var(--gold-d)}
-.badge.returned{background:var(--navy);color:#fff}
-.badge.rejected{background:#EEF2F6;color:var(--sub)}
-.seg{display:flex;background:var(--line);border-radius:14px;padding:4px}
-.seg button{flex:1;padding:11px;border-radius:11px;font-weight:600;font-size:14px;color:var(--sub)}
-.seg button.on{background:var(--navy);color:#fff}
+.badge{display:inline-block;padding:4px 10px;border-radius:100px;font-size:12px;font-weight:600}
+.badge.found{background:var(--navy-l);color:var(--navy)}.badge.lost{background:var(--gold-l);color:var(--gold-d)}
 
 /* Item cards */
 .grid{display:grid;grid-template-columns:1fr;gap:12px}
-.home .grid .card:nth-child(n+4){display:none}
-.card{display:flex;gap:14px;align-items:center;background:var(--white);border:1px solid var(--line);border-radius:20px;padding:12px;transition:box-shadow .15s,transform .15s}
-a.card:hover{box-shadow:0 8px 24px rgba(11,42,91,.08);transform:translateY(-2px)}
-.thumb{width:72px;height:72px;border-radius:16px;display:grid;place-items:center;flex:none;overflow:hidden}
-.thumb img{width:100%;height:100%;object-fit:cover}
-.thumb.sm{width:56px;height:56px}
-.thumb.found{background:var(--navy-l);color:var(--navy)}
-.thumb.lost{background:var(--gold-l);color:var(--gold-d)}
-.card .body{display:grid;gap:5px;min-width:0;flex:1}
-.card h3{font-size:16px;font-weight:600;overflow-wrap:anywhere}
-.badge-line{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.when{display:none;color:var(--sub);font-size:12px}
+.card{display:flex;gap:14px;align-items:center;background:var(--white);border:1px solid var(--line);border-radius:20px;padding:12px;text-align:left;width:100%;transition:box-shadow .15s,transform .15s}
+.card:hover{box-shadow:0 8px 24px rgba(11,42,91,.08);transform:translateY(-2px)}
+.thumb{width:72px;height:72px;border-radius:16px;display:grid;place-items:center;flex:none}
+.thumb.found{background:var(--navy-l);color:var(--navy)}.thumb.lost{background:var(--gold-l);color:var(--gold-d)}
+.card .body{display:grid;gap:5px;min-width:0}
+.card h3{font-size:16px;font-weight:600}
 .meta{display:flex;align-items:center;gap:6px;color:var(--sub);font-size:13px}
-.card.flat .thumb{width:56px;height:56px}
-.card.flat .badge{margin-left:auto}
+.card .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card .when{display:none;color:var(--sub);font-size:12px}
+.empty{padding:40px 0;text-align:center;color:var(--sub)}
 
-/* Item details */
-.back{display:flex;align-items:center;gap:14px;margin-bottom:20px;font-size:20px;font-weight:700}
-.backbtn{width:40px;height:40px;border-radius:50%;background:var(--white);border:1px solid var(--line);display:grid;place-items:center}
+/* Details */
 .detail{display:grid;gap:16px}
-.dcol{display:grid;gap:16px;align-content:start}
-.hero{height:180px;border-radius:24px;display:grid;place-items:center;overflow:hidden}
-.hero img{width:100%;height:100%;object-fit:cover}
-.hero svg{width:72px;height:72px}
-.hero.found{background:var(--navy-l);color:var(--navy)}
-.hero.lost{background:var(--gold-l);color:var(--gold-d)}
+.hero{height:180px;border-radius:24px;display:grid;place-items:center}
+.hero.found{background:var(--navy-l);color:var(--navy)}.hero.lost{background:var(--gold-l);color:var(--gold-d)}
 .title-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.title-row h1{font-size:24px;overflow-wrap:anywhere}
+.title-row h1{font-size:24px}
 .info{background:var(--white);border:1px solid var(--line);border-radius:20px;padding:16px;display:grid;gap:14px}
-.info div{display:flex;gap:12px;align-items:center;font-weight:500}
+.info div{display:flex;gap:12px;align-items:center;font-weight:500;color:var(--ink)}
 .info svg{color:var(--navy)}
-.desc{color:var(--sub);line-height:1.6;overflow-wrap:anywhere}
-.by{color:var(--sub);font-size:13px}
-.held,.note,.match{border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:center;font-size:14px;line-height:1.5}
-.held{background:var(--navy-l);color:var(--navy)}
-.held b{display:block}.held span{font-size:13px}
-.note{background:var(--gold-l);color:var(--gold-d)}
-.note.ok,.match{background:var(--navy-l);color:var(--navy)}
-.match{align-items:flex-start}.match b{display:block}
-.btns{position:fixed;left:0;right:0;bottom:0;background:var(--white);border-top:1px solid var(--line);padding:22px 20px calc(22px + env(safe-area-inset-bottom));display:flex;gap:12px;z-index:6}
-
-/* Buttons */
-.btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:16px 22px;border-radius:14px;font-weight:600;font-size:16px;text-align:center}
-.btn:disabled{opacity:.6;cursor:default}
-.btn.primary{background:var(--navy);color:#fff;flex:1}
-.btn.primary:hover:not(:disabled){background:#0a2350}
+.desc{color:var(--sub);line-height:1.6}
+.held{background:var(--navy-l);color:var(--navy);padding:14px 16px;border-radius:16px;display:flex;gap:12px;align-items:center}
+.held b{display:block;font-size:14px}.held span{font-size:13px}
+.btns{display:flex;gap:12px}
+.btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:16px 22px;border-radius:14px;font-weight:600;font-size:16px}
+.btn.primary{background:var(--navy);color:#fff;flex:1}.btn.primary:hover{background:#0a2350}
 .btn.ghost{background:var(--white);border:1px solid var(--line);color:var(--navy);font-size:14px}
-.btn.danger{background:var(--danger-l);color:var(--danger);font-size:14px}
-.btn.sm{padding:9px 14px;font-size:13px;border-radius:10px;flex:none}
 
-/* Forms */
-.layout{display:flex;flex-direction:column;gap:16px}
-.fields,.side{display:contents}
-.f-seg{order:1}.f-upload{order:2}.f-name{order:3}.f-cat{order:4}.f-where{order:5}.f-desc{order:6}.f-held{order:7}.f-err{order:8}.f-submit{order:9}.tip{order:10}
-.field{display:grid;gap:6px}
-.field label{font-size:13px;font-weight:600}
+/* Form */
+.layout{display:grid;gap:16px}
+.form{background:var(--white);border:1px solid var(--line);border-radius:24px;padding:20px;display:grid;gap:18px}
+.seg{display:flex;background:var(--line);border-radius:14px;padding:4px}
+.seg button{flex:1;padding:11px;border-radius:11px;font-weight:600;font-size:14px;color:var(--sub)}
+.seg button.on{background:var(--navy);color:#fff}
+.field{display:grid;gap:6px}.field label{font-size:13px;font-weight:600}
 .input{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:14px;padding:0 14px;background:var(--white)}
 .input:focus-within{border-color:var(--navy);box-shadow:0 0 0 3px var(--navy-l)}
 .input svg{color:var(--sub)}
-.input input,.input select,.input textarea{flex:1;border:0;outline:0;padding:15px 0;background:none;min-width:0;width:100%}
-.input.ta{align-items:flex-start}.input textarea{resize:vertical;min-height:84px}
+.input input,.input select{flex:1;border:0;outline:0;padding:15px 0;background:none;min-width:0}
 .two{display:grid;gap:16px}
-.upload{border:1.5px dashed var(--navy);background:var(--navy-l);color:var(--navy);border-radius:20px;padding:24px 16px;display:grid;justify-items:center;gap:6px;font-weight:600;cursor:pointer;text-align:center}
-.upload small{display:none;font-weight:400;font-size:12px}
-.tip{display:none;background:var(--gold-l);color:var(--gold-d);border-radius:20px;padding:18px 20px;gap:8px;font-size:13px;line-height:1.5}
+.upload{border:1.5px dashed var(--navy);background:var(--navy-l);color:var(--navy);border-radius:20px;padding:28px 16px;display:grid;justify-items:center;gap:6px;font-weight:600;cursor:pointer}
+.upload small{font-weight:400;font-size:12px}
+.tip{background:var(--gold-l);color:var(--gold-d);border-radius:20px;padding:18px 20px;display:grid;gap:8px;font-size:13px}
 .tip b{font-size:14px}
 
-/* Login / register / profile */
+/* My items */
+.match{background:var(--navy-l);color:var(--navy);border-radius:20px;padding:16px;display:grid;gap:10px;margin:18px 0}
+.match b{display:flex;gap:10px;align-items:center}
+.match .btn{background:var(--navy);color:#fff;font-size:14px;padding:10px 16px;justify-self:start;border-radius:12px}
+.toast{position:fixed;left:50%;bottom:100px;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:10}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+
+/* ---------- Mobile-specific (matches the phone designs) ---------- */
+.home-head{order:-2}.topbar{order:-1;margin:18px 0 0}
+.greet{color:var(--sub);font-weight:500;font-size:14px;margin-bottom:4px}
+.lead,.chips-desk{display:none}
+.chips-mob{margin:0 0 18px}
+.row{margin:0 0 14px}
+.see{color:var(--navy);font-weight:600;font-size:14px;margin-left:auto}.see:hover{text-decoration:underline}
+.m-only{display:inline}.d-only{display:none}
+.hero svg{width:72px;height:72px}
+.btns{position:fixed;left:0;right:0;bottom:0;background:var(--white);border-top:1px solid var(--line);padding:22px 21px calc(22px + env(safe-area-inset-bottom));z-index:6}
+.btn.ghost{width:56px;height:56px;padding:0;border-radius:16px;order:-1}.btn.ghost span{display:none}
+body.on-details .tabbar{display:none}
+body.on-details main{padding-bottom:130px}
+.layout{display:flex;flex-direction:column;gap:18px}
+.form,.side{display:contents}
+.seg{order:1}.upload{order:2}.f-name{order:3}.f-cat{order:4}.two{order:5}.btn.submit{order:6}.tip{order:7}
+.actions{margin:18px 0}
+.tip{display:none}
+
+/* ---------- Laptop layout ---------- */
+@media (min-width:900px){
+  .sidebar{display:flex}.tabbar{display:none}
+  main{padding:32px 40px}
+  .topbar{order:-2;margin:0 0 24px}.home-head{order:-1}
+  .greet,.chips-mob,.see{display:none}
+  .chips-desk{display:flex}.lead{display:block}
+  .row{margin:6px 0 14px}
+  .m-only{display:none}.d-only{display:inline}
+  .hero svg{width:120px;height:120px}
+  .btns{position:static;border:0;background:none;padding:0;z-index:auto}
+  .btn.ghost{width:auto;height:auto;padding:16px 22px;border-radius:14px;order:0}.btn.ghost span{display:inline}
+  body.on-details main{padding-bottom:32px}
+  .layout{display:grid}
+  .form{display:grid}.side{display:grid;gap:16px}.tip{display:grid}
+  .actions{margin:20px 0 28px}
+
+  .user{display:flex}
+  h1{font-size:32px}
+  .actions{gap:20px}
+  .tile{flex-direction:row;align-items:center;gap:16px;padding:18px 20px}
+  .tile .ic{width:48px;height:48px}.tile b{font-size:18px}
+  .grid{grid-template-columns:repeat(3,1fr);gap:20px}
+  .card{flex-direction:column;align-items:stretch;gap:12px}
+  .card .thumb{width:100%;height:112px;border-radius:14px}
+  .card .top{order:-1;position:absolute}
+  .card{position:relative}
+  .card .body{padding:0 4px 4px}
+  .card .when{display:block}
+  .mobile-time{display:none}
+  .card .meta-badge{display:flex;justify-content:space-between;align-items:center}
+  .detail{grid-template-columns:1fr 1fr;gap:28px;align-items:start}
+  .hero{height:420px}.title-row h1{font-size:30px}
+  .layout{grid-template-columns:1fr 360px;gap:28px;align-items:start}
+  .form{padding:28px}.two{grid-template-columns:1fr 1fr}
+  .toast{bottom:40px}
+}
+.card .badge-line{display:flex;justify-content:space-between;align-items:center;gap:8px}
+
+/* ---------- Added: Browse, Profile, login, claims, database-backed lists ---------- */
+.page-h{font-size:28px}
+#browse.on,#profile.on{display:grid;gap:16px;align-content:start}
+#browse .topbar{margin:0}
+.user-slot{display:contents}
+a.user{color:inherit;text-decoration:none}
+.count{color:var(--sub);font-size:13px}
+.empty{grid-column:1/-1}
+a.see{text-decoration:none}
+.thumb,.hero{overflow:hidden}
+.thumb img,.hero img{width:100%;height:100%;object-fit:cover}
+.card h3{overflow-wrap:anywhere}
+.list{display:grid;gap:12px;max-width:760px}
+.card.flat .thumb{width:56px;height:56px}
+.card.flat .badge{margin-left:auto;white-space:nowrap}
+.sub-h{font-size:18px;margin:22px 0 12px}
+.badge.approved{background:var(--navy-l);color:var(--navy)}
+.badge.pending{background:var(--gold-l);color:var(--gold-d)}
+.badge.rejected{background:#EEF2F6;color:var(--sub)}
+.badge.returned{background:var(--navy);color:#fff}
+
+/* buttons used outside the item-details bar */
+.btn.outline{background:var(--white);border:1px solid var(--line);color:var(--navy);font-size:14px}
+.btn.sm{padding:9px 16px;font-size:13px;border-radius:10px;flex:none}
+.btn:disabled{opacity:.6;cursor:default}
+
+/* notes + banners */
+.note,.banner{border-radius:16px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;font-size:14px;line-height:1.5}
+.note{background:var(--gold-l);color:var(--gold-d)}
+.note.ok,.banner{background:var(--navy-l);color:var(--navy)}
+.banner b{display:block}
+.by{color:var(--sub);font-size:13px}
+.err{color:#B42318;font-size:13px}
+.err:empty{display:none}
+.f-err{order:6}.btn.submit{order:7}.tip{order:8}
+
+/* login / profile */
 .auth{max-width:420px;margin:12px auto 0;display:grid;gap:16px}
 .auth h1{font-size:26px}
 .lead2{color:var(--sub);font-size:14px}
 .form-col{display:grid;gap:16px}
-.alt{text-align:center;color:var(--sub);font-size:14px}
-.alt a{color:var(--navy);font-weight:600}
 .who{display:flex;align-items:center;gap:14px}
-.who h1{font-size:22px}
+.who h1{font-size:22px;overflow-wrap:anywhere}
+.avatar.big{width:56px;height:56px;font-size:18px}
 .role{justify-self:start}
+.pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.pstat{background:var(--white);border:1px solid var(--line);border-radius:20px;padding:16px;color:var(--sub);font-size:13px;font-weight:500}
+.pstat b{display:block;font-size:26px;color:var(--navy);line-height:1.1}
 .auth .btn.primary{flex:none}
 
-/* My items */
-.narrow{max-width:760px}
-
-/* Admin */
+/* admin */
+#admin.on{display:grid;gap:16px;align-content:start}
+.list.wide{max-width:none}
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .stat{background:var(--white);border:1px solid var(--line);border-radius:20px;padding:16px;color:var(--sub);font-size:13px;font-weight:500}
 .stat b{display:block;font-size:28px;color:var(--navy);line-height:1.1;margin-bottom:2px}
 .rowcard{display:flex;gap:14px;align-items:flex-start;background:var(--white);border:1px solid var(--line);border-radius:20px;padding:14px;flex-wrap:wrap}
 .rowcard .main{flex:1;min-width:200px;display:grid;gap:6px}
 .rowcard h3{font-size:15px;font-weight:600;overflow-wrap:anywhere}
-.rowcard h3 a:hover{text-decoration:underline}
-.rowcard blockquote{background:var(--bg);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--ink);overflow-wrap:anywhere}
+.rowcard h3 a{color:inherit;text-decoration:none}.rowcard h3 a:hover{text-decoration:underline}
+.rowcard blockquote{background:var(--bg);border-radius:12px;padding:10px 12px;font-size:14px;overflow-wrap:anywhere}
 .meta2{font-size:13px;color:var(--sub);overflow-wrap:anywhere}
 .racts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .sel{border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:var(--white);font-size:13px}
+.btn.danger{background:#FEE4E2;color:#B42318;font-size:14px}
+.thumb.sm{width:56px;height:56px}
 
-/* Dialog + toast */
+/* dialog */
 dialog{border:0;border-radius:20px;padding:24px;width:min(460px,92vw);box-shadow:0 24px 60px rgba(15,23,42,.25)}
 dialog::backdrop{background:rgba(15,23,42,.45)}
 .dlg-form{display:grid;gap:12px}
 .dlg-form h3{font-size:18px}
 .dlg-form label{font-size:14px;color:var(--sub)}
-.dlg-form textarea{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px 14px;min-height:110px;resize:vertical;outline:0}
+.dlg-form textarea{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px 14px;min-height:110px;resize:vertical;outline:0;font:inherit}
 .dlg-form textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px var(--navy-l)}
 .dlg-btns{display:flex;gap:10px;justify-content:flex-end}
 .dlg-btns .btn{flex:none;padding:12px 20px;font-size:14px}
-.toast{position:fixed;left:50%;bottom:100px;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:20;max-width:90vw;text-align:center}
-.toast.show{opacity:1;transform:translate(-50%,0)}
 
-/* ---------- Laptop layout ---------- */
 @media (min-width:900px){
-  .sidebar{display:flex}.tabbar{display:none}
-  main{padding:32px 40px}
-  body.has-bar main{padding-bottom:32px}
-  h1{font-size:32px}.page-h{font-size:30px}
-  .topbar{order:-1;margin:0 0 24px}
-  .stack>.topbar{margin:0}
-  .user{display:flex}
-  .greet,.chips-mob,.see,.m-only{display:none}
-  .lead,.d-only{display:block}
-  i.d-only{display:inline}
-  .chips-desk{display:flex}
-  .row{margin:6px 0 14px}.row .chips{margin-left:auto}
-  .actions{gap:20px;margin:20px 0 28px}
-  .tile{flex-direction:row;align-items:center;gap:16px;padding:18px 20px}
-  .tile .ic{width:48px;height:48px}.tile b{font-size:18px}
-
-  .grid{grid-template-columns:repeat(3,1fr);gap:20px}
-  .home .grid .card:nth-child(n+4){display:flex}
-  .card{flex-direction:column;align-items:stretch;gap:12px}
-  .card .thumb{width:100%;height:112px;border-radius:14px}
-  .card .body{padding:0 4px 4px}
-  .when{display:block}.mobile-time{display:none}
-  .card.flat{flex-direction:row;align-items:center}
-  .card.flat .thumb{width:56px;height:56px}.card.flat .body{padding:0}
-
-  .detail{grid-template-columns:1fr 1fr;gap:28px;align-items:start}
-  .hero{height:420px}.hero svg{width:120px;height:120px}
-  .title-row h1{font-size:30px}
-  .btns{position:static;border:0;background:none;padding:0}
-  .btn.primary{flex:1}
-
-  .layout{display:grid;grid-template-columns:1fr 360px;gap:28px;align-items:start}
-  .fields{display:grid;gap:18px;background:var(--white);border:1px solid var(--line);border-radius:24px;padding:28px}
-  .side{display:grid;gap:16px;align-content:start}
-  .two{grid-template-columns:1fr 1fr}
-  .upload{padding:28px 16px}.upload small{display:block}
-  .tip{display:grid}
+  .page-h{font-size:30px}
+  .card.flat{flex-direction:row;align-items:center;gap:14px}
+  .card.flat .thumb{width:56px;height:56px}
+  .card.flat .body{padding:0}
   .auth{margin-top:40px;background:var(--white);border:1px solid var(--line);border-radius:24px;padding:32px}
+  .profile-wrap{max-width:520px}
   .stats{grid-template-columns:repeat(5,1fr)}
-  .toast{bottom:40px}
 }
 
 </style>
@@ -257,700 +276,604 @@ dialog::backdrop{background:rgba(15,23,42,.45)}
 <body>
 <div class="app">
   <aside class="sidebar">
-    <a class="logo" href="#/"><span class="logo-mark" id="logoMark"></span><span><b>Daystar University</b><small>Lost &amp; Found</small></span></a>
-    <nav class="nav" id="sideNav" aria-label="Main"></nav>
-    <div class="help" id="helpCard"></div>
+    <div class="logo"><div class="logo-mark" data-icon="star" data-color="#F2B705" data-size="22"></div><div><b>Daystar University</b><small>Lost &amp; Found</small></div></div>
+    <nav class="nav" id="sideNav"></nav>
+    <div class="help"><span data-icon="help" data-size="22"></span><b>Need help?</b>Visit the Security Office, Main Gate. Open 8 AM – 6 PM.</div>
   </aside>
-  <main><div id="view"></div></main>
+
+  <main>
+    <!-- HOME -->
+    <section class="view" id="home">
+      <div class="home-head">
+        <p class="greet" id="greet"></p>
+        <h1>Lost something on campus?</h1>
+        <p class="lead">Report it in under a minute, or browse what has been handed in.</p>
+      </div>
+      <div class="topbar">
+        <label class="search"><span data-icon="search" data-size="20"></span><input id="q" type="search" placeholder="Search keys, phone, wallet…" aria-label="Search items" autocomplete="off"></label>
+        <span class="user-slot"></span>
+      </div>
+      <div class="actions">
+        <button class="tile lost" data-go="report" data-kind="lost"><div class="ic" data-icon="search" data-color="#0B2A5B" data-size="22"></div><div><b>I lost something</b><span><i class="m-only">Report &amp; track it</i><i class="d-only">Report it and we will watch for matches</i></span></div></button>
+        <button class="tile found" data-go="report" data-kind="found"><div class="ic" data-icon="plus" data-color="#0B2A5B" data-size="22"></div><div><b>I found something</b><span><i class="m-only">Help return it</i><i class="d-only">Hand it in and help return it</i></span></div></button>
+      </div>
+      <div class="chips chips-mob" id="chipsM"></div>
+      <div class="row"><h2>Recently reported</h2><a class="see" href="#browse">See all</a><div class="chips chips-desk" id="chips"></div></div>
+      <div class="grid" id="list"></div>
+    </section>
+
+    <!-- BROWSE -->
+    <section class="view" id="browse">
+      <h1 class="page-h">Browse items</h1>
+      <div class="topbar">
+        <label class="search"><span data-icon="search" data-size="20"></span><input id="bq" type="search" placeholder="Search by name, place or category" aria-label="Search all items" autocomplete="off"></label>
+        <span class="user-slot"></span>
+      </div>
+      <div class="seg" id="typeSeg"><button data-type="" class="on">All</button><button data-type="lost">Lost</button><button data-type="found">Found</button></div>
+      <div class="chips" id="bchips"></div>
+      <p class="count" id="bcount"></p>
+      <div class="grid" id="blist"></div>
+    </section>
+
+    <!-- DETAILS -->
+    <section class="view" id="details">
+      <div class="back"><button data-go="browse" aria-label="Back" data-icon="back" data-size="20"></button>Item details</div>
+      <div class="detail" id="detailBody"></div>
+    </section>
+
+    <!-- REPORT -->
+    <section class="view" id="report">
+      <div class="back"><button data-go="home" aria-label="Back" data-icon="back" data-size="20"></button>Report an item</div>
+      <div class="layout">
+        <form class="form" id="form" novalidate>
+          <div class="seg" id="seg"><button type="button" data-kind="lost">I lost it</button><button type="button" data-kind="found" class="on">I found it</button></div>
+          <div class="field f-name"><label for="name">What is it?</label><div class="input"><span data-icon="search" data-size="18"></span><input id="name" maxlength="100" placeholder="e.g. Black wallet"></div></div>
+          <div class="field f-cat"><label>Category</label><div class="chips" id="catChips"></div></div>
+          <div class="two">
+            <div class="field"><label for="where" id="whereLabel">Where did you find it?</label><div class="input"><span data-icon="pin" data-size="18"></span>
+              <select id="where"><option value="">Select a campus location</option><option>Freedom Corner</option><option>Library</option><option>ICT Labs, 3rd floor</option><option>DAC 104</option><option>Cafeteria</option><option>Gym</option><option>Other</option></select></div></div>
+            <div class="field"><label for="when">When?</label><div class="input"><span data-icon="clock" data-size="18"></span><input id="when" type="datetime-local"></div></div>
+          </div>
+          <p class="err f-err" id="formErr" role="alert"></p>
+          <button class="btn primary submit" type="submit">Submit report</button>
+        </form>
+        <div class="side">
+          <label class="upload"><span data-icon="camera" data-size="32"></span><span id="upText">Add a photo</span><small id="upHint">JPG, PNG or WebP · up to 3 MB</small><input type="file" id="photo" accept="image/jpeg,image/png,image/webp" hidden></label>
+          <div class="tip"><span data-icon="shield" data-size="22"></span><b>Keep private details private</b>Leave out serial numbers or ID details. We will ask the owner to describe them before handing it over.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MY ITEMS -->
+    <section class="view" id="mine">
+      <h1 class="page-h">My items</h1>
+      <div id="mineBanner"></div>
+      <div class="chips" style="margin:14px 0"><button class="chip on" data-mt="active">Active</button><button class="chip" data-mt="resolved">Resolved</button></div>
+      <div class="list" id="mineList"></div>
+      <div id="claimsWrap"></div>
+    </section>
+
+    <!-- ADMIN -->
+    <section class="view" id="admin">
+      <h1 class="page-h">Admin dashboard</h1>
+      <div class="stats" id="aStats"></div>
+      <div class="seg" id="aTabs"><button data-atab="claims" class="on">Claims</button><button data-atab="items">Items</button></div>
+      <div class="list wide" id="aBody"></div>
+    </section>
+
+    <!-- PROFILE -->
+    <section class="view" id="profile">
+      <div id="profileBody"></div>
+    </section>
+  </main>
 </div>
-<nav class="tabbar" id="tabbar" aria-label="Main"></nav>
+
+<nav class="tabbar" id="tabbar"></nav>
 <dialog id="dlg"></dialog>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
-<noscript><p style="padding:24px">Please enable JavaScript to use the Lost &amp; Found system.</p></noscript>
+<div class="toast" id="toast" role="status"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
-
+/* ---------- Supabase ---------- */
 const SUPABASE_URL = 'https://ylixpizxtchfrfmlpkue.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_ehkGCe-BkzZ-zIM91Gmfrg_K7Z9iqzL';
-/* The anon key is safe to put in a web page: the database rules in schema.sql decide what each person can do. */
-
-/* ===== UI helpers ===== */
-// Small UI helpers: icons, escaping, dates, toast, dialog.
-const $ = (s, r = document) => r.querySelector(s);
-const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-const P = {
-  search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
-  pin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
-  plus: '<path d="M5 12h14M12 5v14"/>',
-  home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
-  user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
-  list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
-  back: '<path d="m15 18-6-6 6-6"/>',
-  clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
-  key: '<path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
-  phone: '<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
-  wallet: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
-  bag: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
-  laptop: '<path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/>',
-  other: '<path d="M12 2H2v10l9.3 9.3a1 1 0 0 0 1.4 0l8.6-8.6a1 1 0 0 0 0-1.4z"/><path d="M7 7h.01"/>',
-  star: '<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/>',
-  camera: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/>',
-  help: '<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',
-  shield: '<path d="M20 13c0 5-3.5 7.5-7.7 9a1 1 0 0 1-.6 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1.2 1.2 0 0 1 1.6 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
-  check: '<path d="M20 6 9 17l-5-5"/>',
-};
-const icon = (n, s = 20, c = 'currentColor') =>
-  `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n] || P.other}</svg>`;
-
-function timeAgo(iso) {
-  const d = new Date(iso), s = (Date.now() - d) / 1000;
-  if (s < 60) return 'Just now';
-  if (s < 3600) return Math.floor(s / 60) + 'm ago';
-  if (s < 86400) return Math.floor(s / 3600) + 'h ago';
-  if (s < 172800) return 'Yesterday';
-  if (s < 2592000) return Math.floor(s / 86400) + ' days ago';
-  return d.toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
-function fmtWhen(iso) {
-  const d = new Date(iso);
-  const t = d.toLocaleTimeString('en-KE', { hour: 'numeric', minute: '2-digit' });
-  if (d.toDateString() === new Date().toDateString()) return 'today · ' + t;
-  return d.toLocaleDateString('en-KE', { weekday: 'short', day: 'numeric', month: 'short' }) + ' · ' + t;
-}
-
-let toastTimer;
-function toast(msg) {
-  const t = $('#toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
-}
-
-// Modal that asks for a short piece of text. Resolves to the text, or null if cancelled.
-function askText({ title, label, min = 0, submit = 'Submit', placeholder = '' }) {
-  return new Promise((resolve) => {
-    const d = $('#dlg');
-    d.innerHTML = `<form class="dlg-form"><h3>${esc(title)}</h3><label for="dlgText">${esc(label)}</label>
-      <textarea id="dlgText" maxlength="500" placeholder="${esc(placeholder)}"></textarea>
-      <p class="err" id="dlgErr"></p>
-      <div class="dlg-btns"><button type="button" class="btn ghost" id="dlgCancel">Cancel</button><button class="btn primary" type="submit">${esc(submit)}</button></div></form>`;
-    let done = false;
-    const finish = (v) => { if (done) return; done = true; resolve(v); if (d.open) d.close(); };
-    $('form', d).addEventListener('submit', (e) => {
-      e.preventDefault();
-      const v = $('#dlgText').value.trim();
-      if (v.length < min) { $('#dlgErr').textContent = `Please write at least ${min} characters.`; return; }
-      finish(v);
-    });
-    $('#dlgCancel').addEventListener('click', () => finish(null));
-    d.addEventListener('close', () => finish(null), { once: true });
-    d.showModal();
-    $('#dlgText').focus();
-  });
-}
-
-
-/* ===== Supabase data layer: same interface the screens already use (api.get/post/patch/del) ===== */
-const SB_CONFIGURED = !/YOUR-PROJECT|YOUR_ANON/.test(SUPABASE_URL + SUPABASE_ANON_KEY);
-const sb = SB_CONFIGURED ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 const BUCKET = 'item-images';
-const META = {
-  categories: [
-    { key: 'wallet', label: 'Wallets', name: 'Wallet' }, { key: 'phone', label: 'Phones', name: 'Phone' },
-    { key: 'keys', label: 'Keys', name: 'Keys' }, { key: 'bag', label: 'Bags', name: 'Bag' },
-    { key: 'laptop', label: 'Laptops', name: 'Laptop' }, { key: 'other', label: 'Other', name: 'Other' },
-  ],
-  locations: ['Freedom Corner', 'Library', 'ICT Labs, 3rd floor', 'DAC 104', 'Cafeteria', 'Gym', 'Other'],
-  holding_points: ['Security Desk', 'Library Front Desk', 'I still have it'],
-};
+const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+if (!sb) console.error('Supabase library did not load - check the CDN <script> tag in <head>.');
 
-function sbError(msg, status = 400) { const e = new Error(msg); e.status = status; return e; }
-function friendly(err) {
-  const m = (err && err.message) || 'Something went wrong. Please try again.';
-  if (/invalid login credentials/i.test(m)) return 'Incorrect email or password.';
-  if (/already registered|already been registered/i.test(m)) return 'An account with this email already exists.';
-  if (/failed to fetch|networkerror/i.test(m)) return 'Could not reach the server. Check your internet connection.';
-  if (/email not confirmed/i.test(m)) return 'Please confirm your email first (check your inbox), then log in.';
-  if (/row-level security/i.test(m)) return 'You do not have permission to do that.';
-  return m;
+/* ---------- Icons & helpers ---------- */
+const P={
+search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+pin:'<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+plus:'<path d="M5 12h14M12 5v14"/>',
+home:'<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+user:'<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+back:'<path d="m15 18-6-6 6-6"/>',
+clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+key:'<path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
+phone:'<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
+wallet:'<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+bag:'<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+other:'<path d="M12 2H2v10l9.3 9.3a1 1 0 0 0 1.4 0l8.6-8.6a1 1 0 0 0 0-1.4z"/><path d="M7 7h.01"/>',
+star:'<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/>',
+camera:'<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/>',
+help:'<circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>',
+shield:'<path d="M20 13c0 5-3.5 7.5-7.7 9a1 1 0 0 1-.6 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1.2 1.2 0 0 1 1.6 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+check:'<path d="M20 6 9 17l-5-5"/>',
+laptop:'<path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/>'};
+const icon=(n,s=20,c='currentColor')=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]||P.other}</svg>`;
+const hydrate=(root=document)=>root.querySelectorAll('[data-icon]').forEach(e=>{e.insertAdjacentHTML('afterbegin',icon(e.dataset.icon,+e.dataset.size||20,e.dataset.color||'currentColor'));e.removeAttribute('data-icon')});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const cap=s=>String(s).charAt(0).toUpperCase()+String(s).slice(1);
+const initials=n=>String(n||'?').split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+
+function timeAgo(iso){
+ const d=new Date(iso),s=(Date.now()-d)/1000;
+ if(s<60)return 'Just now';
+ if(s<3600)return Math.floor(s/60)+'m ago';
+ if(s<86400)return Math.floor(s/3600)+'h ago';
+ if(s<172800)return 'Yesterday';
+ if(s<2592000)return Math.floor(s/86400)+' days ago';
+ return d.toLocaleDateString('en-KE',{day:'numeric',month:'short',year:'numeric'});
 }
-const ok = ({ data, error }) => { if (error) throw sbError(friendly(error)); return data; };
-const firstName = (n) => String(n || '').split(' ')[0];
-const uid = async () => ((await sb.auth.getSession()).data.session || { user: null }).user?.id || null;
-const profileOf = async (id) => ok(await sb.from('profiles').select('id,name,email,role').eq('id', id).maybeSingle());
-const shape = (r, me) => ({
-  id: r.id, type: r.type, title: r.title, category: r.category, description: r.description, location: r.location,
-  event_date: r.event_date, image_path: r.image_path, held_at: r.held_at, status: r.status, created_at: r.created_at,
-  reporter: firstName(r.reporter_name), mine: !!me && me === r.user_id,
-});
-const count = async (table, f) => {
-  let q = sb.from(table).select('*', { count: 'exact', head: true });
-  if (f) q = f(q);
-  const { count: n, error } = await q;
-  if (error) throw sbError(friendly(error));
-  return n;
-};
-
-async function sbRoute(method, full, body) {
-  if (!sb) throw sbError('Supabase is not configured yet. Open index.html and paste your project URL and anon key at the top.');
-  const [path, qs] = full.split('?');
-  const q = new URLSearchParams(qs || '');
-  let m;
-
-  if (path === '/meta') return META;
-
-  /* ---- accounts ---- */
-  if (path === '/auth/me') {
-    const { data: { session } } = await sb.auth.getSession();
-    return { user: session ? await profileOf(session.user.id) : null };
-  }
-  if (path === '/auth/login' && method === 'POST') {
-    const email = String(body.email || '').trim().toLowerCase();
-    const { data, error } = await sb.auth.signInWithPassword({ email, password: String(body.password || '') });
-    if (error) throw sbError(friendly(error), 401);
-    return { user: await profileOf(data.user.id) };
-  }
-  if (path === '/auth/register' && method === 'POST') {
-    const name = String(body.name || '').trim(), email = String(body.email || '').trim().toLowerCase();
-    const password = String(body.password || '');
-    if (name.length < 2 || name.length > 80) throw sbError('Please enter your full name.');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw sbError('Please enter a valid email address.');
-    if (password.length < 8) throw sbError('Password must be at least 8 characters.');
-    const { data, error } = await sb.auth.signUp({ email, password, options: { data: { name, role: body.role === 'staff' ? 'staff' : 'student' } } });
-    if (error) throw sbError(friendly(error));
-    if (!data.session) throw sbError('Account created! Check your email to confirm it, then log in.');
-    return { user: await profileOf(data.user.id) };
-  }
-  if (path === '/auth/logout') { await sb.auth.signOut(); return { ok: true }; }
-
-  /* ---- items ---- */
-  if (path === '/items' && method === 'GET') {
-    const me = await uid();
-    let r = sb.from('items').select('*').eq('status', 'open').order('id', { ascending: false }).limit(Math.min(+q.get('limit') || 60, 100));
-    if (['lost', 'found'].includes(q.get('type'))) r = r.eq('type', q.get('type'));
-    if (META.categories.some((c) => c.key === q.get('category'))) r = r.eq('category', q.get('category'));
-    const t = (q.get('q') || '').replace(/[,()%*\\"':]/g, ' ').trim();
-    if (t) r = r.or(['title', 'description', 'location', 'category'].map((c) => `${c}.ilike.*${t}*`).join(','));
-    return { items: ok(await r).map((x) => shape(x, me)) };
-  }
-  if (path === '/items/mine') {
-    const me = await uid();
-    return { items: ok(await sb.from('items').select('*').eq('user_id', me).order('id', { ascending: false })).map((x) => shape(x, me)) };
-  }
-  if ((m = path.match(/^\/items\/(\d+)$/)) && method === 'GET') {
-    const me = await uid();
-    const row = ok(await sb.from('items').select('*').eq('id', +m[1]).maybeSingle());
-    if (!row) throw sbError('Item not found.', 404);
-    const item = shape(row, me);
-    item.my_claim = me ? ok(await sb.from('claims').select('status,admin_note').eq('item_id', row.id).eq('user_id', me).maybeSingle()) : null;
-    return { item };
-  }
-  if (path === '/items' && method === 'POST') {
-    const me = await uid();
-    if (!me) throw sbError('Please log in first.', 401);
-    const f = (k) => String(body.get(k) || '').trim();
-    const type = f('type'), title = f('title'), category = f('category'), location = f('location'), description = f('description');
-    const file = body.get('image');
-    if (!['lost', 'found'].includes(type)) throw sbError('Choose whether the item was lost or found.');
-    if (title.length < 2 || title.length > 100) throw sbError('Item name must be 2 to 100 characters.');
-    if (!META.categories.some((c) => c.key === category)) throw sbError('Choose a category.');
-    if (!META.locations.includes(location)) throw sbError('Choose a campus location.');
-    if (description.length > 500) throw sbError('Details must be 500 characters or fewer.');
-    let image_path = null;
-    if (file && file.size) {
-      if (!/^image\/(jpeg|png|webp)$/.test(file.type)) throw sbError('Only JPG, PNG or WebP images are allowed.');
-      if (file.size > 3 * 1024 * 1024) throw sbError('Image must be 3 MB or smaller.');
-      const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[file.type];
-      const key = `${me}/${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
-      const up = await sb.storage.from(BUCKET).upload(key, file, { contentType: file.type });
-      if (up.error) throw sbError(friendly(up.error));
-      image_path = sb.storage.from(BUCKET).getPublicUrl(key).data.publicUrl;
-    }
-    let when = new Date(f('event_date'));
-    if (isNaN(when) || when > new Date(Date.now() + 86400000)) when = new Date();
-    const held = type === 'found' ? (META.holding_points.includes(f('held_at')) ? f('held_at') : META.holding_points[0]) : null;
-    const row = ok(await sb.from('items').insert({ type, title, category, location, description, event_date: when.toISOString(), image_path, held_at: held }).select().single());
-    return { item: shape(row, me) };
-  }
-  if ((m = path.match(/^\/items\/(\d+)\/resolve$/)) && method === 'PATCH') {
-    ok(await sb.rpc('resolve_item', { p_item_id: +m[1] }));
-    return { ok: true };
-  }
-
-  /* ---- claims ---- */
-  if (path === '/claims' && method === 'POST') {
-    const id = ok(await sb.rpc('submit_claim', { p_item_id: +body.item_id, p_message: String(body.message || '') }));
-    return { claim: { id, status: 'pending' } };
-  }
-  if (path === '/claims/mine') {
-    const me = await uid();
-    const rows = ok(await sb.from('claims').select('id,item_id,status,admin_note,created_at,items(title,category,image_path,held_at)').eq('user_id', me).order('id', { ascending: false }));
-    return { claims: rows.map((c) => ({ ...(c.items || {}), id: c.id, item_id: c.item_id, status: c.status, admin_note: c.admin_note, created_at: c.created_at })) };
-  }
-
-  /* ---- admin (the database itself enforces admin-only access) ---- */
-  if (path === '/admin/stats') {
-    const [users, items, open, returned, pendingClaims] = await Promise.all([
-      count('profiles'), count('items'), count('items', (r) => r.eq('status', 'open')),
-      count('items', (r) => r.eq('status', 'returned')), count('claims', (r) => r.eq('status', 'pending')),
-    ]);
-    return { stats: { users, items, open, returned, pendingClaims } };
-  }
-  if (path === '/admin/items' && method === 'GET') {
-    const [rows, pend] = await Promise.all([
-      sb.from('items').select('id,type,title,category,location,image_path,status,created_at,profiles(name,email)').order('id', { ascending: false }).then(ok),
-      sb.from('claims').select('item_id').eq('status', 'pending').then(ok),
-    ]);
-    const n = {}; pend.forEach((c) => { n[c.item_id] = (n[c.item_id] || 0) + 1; });
-    return { items: rows.map((i) => ({ ...i, reporter: i.profiles?.name || '', reporter_email: i.profiles?.email || '', pending_claims: n[i.id] || 0 })) };
-  }
-  if ((m = path.match(/^\/admin\/items\/(\d+)$/))) {
-    const id = +m[1];
-    if (method === 'PATCH') {
-      if (!['open', 'returned'].includes(body.status)) throw sbError('Status must be open or returned.');
-      ok(await sb.from('items').update({ status: body.status }).eq('id', id));
-      return { ok: true };
-    }
-    if (method === 'DELETE') {
-      const row = ok(await sb.from('items').select('image_path').eq('id', id).maybeSingle());
-      if (!row) throw sbError('Item not found.', 404);
-      ok(await sb.from('items').delete().eq('id', id));
-      const key = row.image_path && row.image_path.split(`/${BUCKET}/`)[1];
-      if (key) await sb.storage.from(BUCKET).remove([decodeURIComponent(key)]);
-      return { ok: true };
-    }
-  }
-  if (path === '/admin/claims' && method === 'GET') {
-    const rows = ok(await sb.from('claims').select('id,item_id,message,status,admin_note,created_at,items(title,category,image_path,status,held_at),profiles(name,email)').order('id', { ascending: false }));
-    const out = rows.map((c) => ({ ...(c.items || {}), id: c.id, item_id: c.item_id, message: c.message, status: c.status, admin_note: c.admin_note,
-      created_at: c.created_at, item_status: c.items?.status, claimant: c.profiles?.name || '', claimant_email: c.profiles?.email || '' }));
-    out.sort((a, b) => (b.status === 'pending') - (a.status === 'pending'));
-    return { claims: out };
-  }
-  if ((m = path.match(/^\/admin\/claims\/(\d+)$/)) && method === 'PATCH') {
-    ok(await sb.rpc('decide_claim', { p_claim_id: +m[1], p_status: body.status, p_note: body.note || null }));
-    return { ok: true };
-  }
-  throw sbError('Not found.', 404);
+function fmtWhen(iso){
+ const d=new Date(iso),t=d.toLocaleTimeString('en-KE',{hour:'numeric',minute:'2-digit'});
+ return d.toDateString()===new Date().toDateString()?'today · '+t:d.toLocaleDateString('en-KE',{weekday:'short',day:'numeric',month:'short'})+' · '+t;
 }
-const api = {
-  get: (p) => sbRoute('GET', p),
-  post: (p, b) => sbRoute('POST', p, b),
-  patch: (p, b) => sbRoute('PATCH', p, b),
-  del: (p) => sbRoute('DELETE', p),
-};
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2600)}
 
-
-/* ===== Screens & routing ===== */
-// Campus Lost & Found: single-page app (hash routing, no framework).
-
-let me = null;                                   // logged-in user or null
-let meta = { categories: [], locations: [], holding_points: [] };
-
-const view = (html) => { $('#view').innerHTML = html; };
-const catLabel = (k) => (meta.categories.find((c) => c.key === k) || { label: k }).label;
-const catIcon = (k) => ({ wallet: 'wallet', phone: 'phone', keys: 'key', bag: 'bag', laptop: 'laptop' }[k] || 'other');
-const initials = (n) => n.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
-const thumb = (i, size) => (i.image_path ? `<img src="${esc(i.image_path)}" alt="">` : icon(catIcon(i.category), size));
-const desktop = matchMedia('(min-width:900px)');
-const placeholder = () => (desktop.matches ? 'Search' : 'Search keys, phone, wallet…');
-const options = (list, sel) => list.map((o) => `<option ${o === sel ? 'selected' : ''}>${esc(o)}</option>`).join('');
-
-/* ------------------------------------------------------------------ chrome */
-function chrome(active) {
-  const nav = [
-    ['home', '#/', 'Home', 'Home', 'home'],
-    ['browse', '#/browse', 'Browse items', 'Browse', 'search'],
-    ['report', '#/report', 'Report an item', 'Report', 'plus'],
-    ['mine', '#/mine', 'My items', 'My items', 'list'],
-    ['profile', me ? '#/profile' : '#/login', me ? 'Profile' : 'Log in', me ? 'Profile' : 'Log in', 'user'],
-  ];
-  $('#sideNav').innerHTML = nav.map(([k, h, l, , i]) => `<a href="${h}" class="${k === active ? 'on' : ''}">${icon(i, 20)}${l}</a>`).join('')
-    + (me && me.role === 'admin' ? `<a href="#/admin" class="${active === 'admin' ? 'on' : ''}">${icon('shield', 20)}Admin dashboard</a>` : '');
-  $('#tabbar').innerHTML = nav.map(([k, h, , s, i]) =>
-    `<a href="${h}" class="${k === active ? 'on' : ''} ${k === 'report' ? 'report' : ''}"><span class="pill">${icon(i, 22, k === 'report' ? '#fff' : 'currentColor')}</span>${s}</a>`).join('');
+/* Modal that asks for a short piece of text. Resolves to the text, or null if cancelled. */
+function askText({title,label,min=0,submit='Submit',placeholder=''}){
+ return new Promise(resolve=>{
+  const d=$('#dlg');
+  d.innerHTML=`<form class="dlg-form"><h3>${esc(title)}</h3><label for="dlgText">${esc(label)}</label>
+   <textarea id="dlgText" maxlength="500" placeholder="${esc(placeholder)}"></textarea><p class="err" id="dlgErr"></p>
+   <div class="dlg-btns"><button type="button" class="btn outline" id="dlgCancel">Cancel</button><button class="btn primary" type="submit">${esc(submit)}</button></div></form>`;
+  let done=false;
+  const finish=v=>{if(done)return;done=true;resolve(v);if(d.open)d.close()};
+  d.querySelector('form').addEventListener('submit',e=>{e.preventDefault();const v=$('#dlgText').value.trim();
+   if(v.length<min){$('#dlgErr').textContent=`Please write at least ${min} characters.`;return}finish(v)});
+  $('#dlgCancel').addEventListener('click',()=>finish(null));
+  d.addEventListener('close',()=>finish(null),{once:true});
+  d.showModal();$('#dlgText').focus();
+ });
 }
 
-const topbar = () => `<div class="topbar"><label class="search">${icon('search', 20)}<input id="q" type="search" placeholder="${placeholder()}" aria-label="Search items" autocomplete="off"></label>
-  ${me ? `<a class="user" href="#/profile"><span class="avatar">${esc(initials(me.name))}</span>${esc(me.name)}</a>`
-       : '<a class="user" href="#/login"><span class="btn ghost sm">Log in</span></a>'}</div>`;
+/* ---------- Database layer ---------- */
+const CATS=[
+ {k:'wallet',label:'Wallets',name:'Wallet',icon:'wallet'},{k:'phone',label:'Phones',name:'Phone',icon:'phone'},
+ {k:'keys',label:'Keys',name:'Keys',icon:'key'},{k:'bag',label:'Bags',name:'Bag',icon:'bag'},
+ {k:'laptop',label:'Laptops',name:'Laptop',icon:'laptop'},{k:'other',label:'Other',name:'Other',icon:'other'}];
+const catBy=k=>CATS.find(c=>c.k===k)||CATS[CATS.length-1];
+const HOME_CHIPS=[['','All'],['keys','Keys'],['phone','Phones'],['bag','Bags'],['wallet','Wallets']];
 
-/* ------------------------------------------------------------ item listing */
-let ls = { q: '', category: '', type: '', limit: 60 };
-let listSeq = 0;
-
-const card = (i) => `<a class="card" href="#/item/${i.id}">
-  <div class="thumb ${i.type}">${thumb(i, 32)}</div>
-  <div class="body"><div class="badge-line"><span class="badge ${i.type}">${cap(i.type)}</span><span class="when">${timeAgo(i.created_at)}</span></div>
-  <h3>${esc(i.title)}</h3><div class="meta">${icon('pin', 14)}${esc(i.location)}<span class="mobile-time"> · ${timeAgo(i.created_at)}</span></div></div></a>`;
-
-const chipsHtml = () => [{ key: '', label: 'All' }, ...meta.categories]
-  .map((c) => `<button class="chip ${ls.category === c.key ? 'on' : ''}" data-cat="${c.key}">${c.label}</button>`).join('');
-const paintChips = () => $$('[data-chips]').forEach((e) => { e.innerHTML = chipsHtml(); });
-
-async function loadList() {
-  const mine = ++listSeq;
-  const p = new URLSearchParams({ limit: ls.limit });
-  if (ls.q) p.set('q', ls.q);
-  if (ls.category) p.set('category', ls.category);
-  if (ls.type) p.set('type', ls.type);
-  const { items } = await api.get('/items?' + p);
-  if (mine !== listSeq) return;                  // a newer search has started
-  $('#list').innerHTML = items.length ? items.map(card).join('') : '<p class="empty">No items match your search.</p>';
+function friendly(e){
+ const m=(e&&e.message)||'Something went wrong. Please try again.';
+ if(/invalid login credentials/i.test(m))return 'Incorrect email or password.';
+ if(/already registered|already been registered/i.test(m))return 'An account with this email already exists.';
+ if(/email not confirmed/i.test(m))return 'Please confirm your email first (check your inbox), then log in.';
+ if(/failed to fetch|networkerror|load failed/i.test(m))return 'Could not reach the server. Check your internet connection.';
+ if(/row-level security|permission denied/i.test(m))return 'You do not have permission to do that.';
+ if(/does not exist|schema cache/i.test(m))return 'The database is not set up yet. Run schema.sql in the Supabase SQL Editor first.';
+ return m;
+}
+async function run(q){
+ if(!sb)throw new Error('Could not connect to the database.');
+ const {data,error}=await q;
+ if(error)throw new Error(friendly(error));
+ return data;
+}
+async function count(q){
+ if(!sb)throw new Error('Could not connect to the database.');
+ const {count:n,error}=await q;
+ if(error)throw new Error(friendly(error));
+ return n||0;
+}
+function fetchItems({type='',category='',q='',limit=60}={}){
+ let r=sb.from('items').select('*').eq('status','open').order('id',{ascending:false}).limit(limit);
+ if(type)r=r.eq('type',type);
+ if(category)r=r.eq('category',category);
+ const t=q.replace(/[,()%*\\"':]/g,' ').trim();
+ if(t)r=r.or(['title','description','location','category'].map(c=>`${c}.ilike.*${t}*`).join(','));
+ return run(r);
 }
 
-function wireSearch() {
-  let t;
-  const q = $('#q');
-  q.value = ls.q;
-  q.addEventListener('input', (e) => {
-    clearTimeout(t);
-    t = setTimeout(() => { ls.q = e.target.value.trim(); loadList().catch((err) => toast(err.message)); }, 250);
-  });
+let me=null;   // signed-in user {id,name,email,role} or null
+async function loadMe(){
+ me=null;
+ if(!sb)return;
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session)return;
+ const u=session.user;
+ let p=null;
+ try{p=await run(sb.from('profiles').select('id,name,email,role').eq('id',u.id).maybeSingle())}catch{}
+ me=p||{id:u.id,name:(u.user_metadata&&u.user_metadata.name)||u.email,email:u.email,role:'student'};
 }
 
-/* ------------------------------------------------------------------- views */
-async function home() {
-  ls = { q: '', category: '', type: '', limit: 6 };
-  view(`<section class="home">
-    <div class="home-head">
-      <p class="greet">${me ? `Welcome back, ${esc(me.name.split(' ')[0])}` : 'Welcome to Daystar Lost &amp; Found'}</p>
-      <h1>Lost something on campus?</h1>
-      <p class="lead">Report it in under a minute, or browse what has been handed in.</p>
-    </div>
-    ${topbar()}
-    <div class="actions">
-      <a class="tile lost" href="#/report?kind=lost"><span class="ic">${icon('search', 22, '#0B2A5B')}</span><span><b>I lost something</b><i class="m-only">Report &amp; track it</i><i class="d-only">Report it and we will watch for matches</i></span></a>
-      <a class="tile found" href="#/report?kind=found"><span class="ic">${icon('plus', 22, '#0B2A5B')}</span><span><b>I found something</b><i class="m-only">Help return it</i><i class="d-only">Hand it in and help return it</i></span></a>
-    </div>
-    <div class="chips chips-mob" data-chips></div>
-    <div class="row"><h2>Recently reported</h2><a class="see" href="#/browse">See all</a><div class="chips chips-desk" data-chips></div></div>
-    <div class="grid" id="list"></div>
-  </section>`);
-  paintChips(); wireSearch(); await loadList();
+/* ---------- State ---------- */
+const mq=matchMedia('(min-width:900px)');
+const state={hc:'',q:'',bt:'',bc:'',bq:'',kind:'found',cat:'wallet',am:'login',mt:'active',at:'claims',prefill:''};
+let adminData={claims:[],items:[]};
+let pendingNext=null,mineData={items:[],claims:[]};
+const go=h=>{if(location.hash==='#'+h)nav();else location.hash=h};
+
+/* ---------- Chrome (sidebar, tab bar, user chip) ---------- */
+const NAV=[['home','Home','Home','home'],['browse','Browse items','Browse','search'],['report','Report an item','Report','plus'],['mine','My items','My items','list'],['profile','Profile','Profile','user']];
+function chrome(active){
+ const lab=(k,l)=>k==='profile'&&!me?'Log in':l;
+ $('#sideNav').innerHTML=NAV.map(([k,l,,i])=>`<a href="#${k}" class="${k===active?'on':''}">${icon(i,20)}${lab(k,l)}</a>`).join('')
+  +(me&&me.role==='admin'?`<a href="#admin" class="${active==='admin'?'on':''}">${icon('shield',20)}Admin dashboard</a>`:'');
+ $('#tabbar').innerHTML=NAV.map(([k,l,s,i])=>`<a href="#${k}" class="${k===active?'on':''} ${k==='report'?'report':''}"><span class="pill">${icon(i,22,k==='report'?'#fff':'currentColor')}</span>${lab(k,s)}</a>`).join('');
+}
+function paintUser(){
+ const h=me?`<a class="user" href="#profile"><span class="avatar">${esc(initials(me.name))}</span>${esc(me.name)}</a>`
+  :'<a class="user" href="#profile"><span class="btn outline sm">Log in</span></a>';
+ $$('.user-slot').forEach(e=>{e.innerHTML=h});
+ $('#greet').textContent=me?`Welcome back, ${me.name.split(' ')[0]}`:'Welcome to Daystar Lost & Found';
 }
 
-async function browse({ query }) {
-  ls = { q: query.q || '', category: query.category || '', type: query.type || '', limit: 60 };
-  view(`<section class="stack">
-    <h1 class="page-h">Browse items</h1>
-    ${topbar()}
-    <div class="seg" id="typeSeg">${[['', 'All'], ['lost', 'Lost'], ['found', 'Found']].map(([v, l]) =>
-      `<button data-type="${v}" class="${ls.type === v ? 'on' : ''}">${l}</button>`).join('')}</div>
-    <div class="chips" data-chips></div>
-    <div class="grid" id="list"></div></section>`);
-  paintChips(); wireSearch(); await loadList();
+/* ---------- Item cards ---------- */
+const thumbHtml=(i,s)=>i.image_path?`<img src="${esc(i.image_path)}" alt="">`:icon(catBy(i.category).icon,s);
+const card=i=>`<button class="card" data-open="${i.id}">
+ <div class="thumb ${esc(i.type)}">${thumbHtml(i,32)}</div>
+ <div class="body"><div class="badge-line"><span class="badge ${esc(i.type)}">${cap(i.type)}</span><span class="when">${timeAgo(i.created_at)}</span></div>
+ <h3>${esc(i.title)}</h3><div class="meta">${icon('pin',14)}${esc(i.location)}<span class="mobile-time"> · ${timeAgo(i.created_at)}</span></div></div></button>`;
+const failBox=e=>`<p class="empty">${esc(e.message)}</p>`;
+
+/* ---------- Home ---------- */
+let seqH=0;
+async function loadHome(){
+ const my=++seqH;
+ const ch=HOME_CHIPS.map(([k,l])=>`<button class="chip ${k===state.hc?'on':''}" data-hc="${k}">${l}</button>`).join('');
+ $('#chips').innerHTML=ch;$('#chipsM').innerHTML=ch;
+ try{
+  const items=await fetchItems({category:state.hc,q:state.q,limit:6});
+  if(my!==seqH)return;
+  const shown=(!mq.matches&&!state.q&&!state.hc)?items.slice(0,3):items;
+  $('#list').innerHTML=shown.length?shown.map(card).join(''):`<p class="empty">${state.q||state.hc?'No items match your search.':'Nothing has been reported yet. Be the first!'}</p>`;
+ }catch(e){if(my===seqH)$('#list').innerHTML=failBox(e)}
 }
 
-async function details({ params }) {
-  const { item: i } = await api.get('/items/' + params[0]);
-  const found = i.type === 'found';
-  let note = '', actions = '';
+/* ---------- Browse ---------- */
+let seqB=0;
+async function loadBrowse(){
+ const my=++seqB;
+ $$('#typeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.type===state.bt));
+ $('#bchips').innerHTML=[['','All'],...CATS.map(c=>[c.k,c.label])].map(([k,l])=>`<button class="chip ${k===state.bc?'on':''}" data-bc="${k}">${l}</button>`).join('');
+ $('#bcount').textContent='Searching…';
+ try{
+  const items=await fetchItems({type:state.bt,category:state.bc,q:state.bq,limit:60});
+  if(my!==seqB)return;
+  $('#bcount').textContent=`${items.length} item${items.length===1?'':'s'}`;
+  $('#blist').innerHTML=items.length?items.map(card).join(''):'<p class="empty">No items match your search yet.</p>';
+ }catch(e){if(my===seqB){$('#bcount').textContent='';$('#blist').innerHTML=failBox(e)}}
+}
 
-  if (i.status === 'returned') {
-    note = `<div class="note ok">${icon('check', 20)}This item has been returned to its owner.</div>`;
-  } else if (i.mine) {
-    note = '<div class="note">This is your report.</div>';
-    actions = `<button class="btn primary" data-act="resolve" data-id="${i.id}">${found ? 'Mark as returned' : 'I found it — close report'}</button>`;
-  } else if (found && i.my_claim) {
-    const c = i.my_claim;
-    note = c.status === 'approved' ? `<div class="note ok">${icon('check', 20)}Your claim was approved. Collect it from ${esc(i.held_at)} and bring your ID.${c.admin_note ? ' Note: ' + esc(c.admin_note) : ''}</div>`
-      : c.status === 'rejected' ? `<div class="note">Your claim was not approved.${c.admin_note ? ' ' + esc(c.admin_note) : ''}</div>`
-      : '<div class="note">Your claim is waiting for an administrator to review it.</div>';
-  } else if (found) {
-    actions = `<button class="btn primary" data-act="claim" data-id="${i.id}">This is mine — Claim it</button>`;
-  } else {
-    actions = `<a class="btn primary" href="#/report?kind=found&title=${encodeURIComponent(i.title)}">I found this</a>`;
+/* ---------- Item details ---------- */
+let seqD=0;
+async function showDetails(id){
+ const my=++seqD,box=$('#detailBody');
+ box.innerHTML='<p class="empty">Loading…</p>';
+ try{
+  const i=await run(sb.from('items').select('*').eq('id',+id).maybeSingle());
+  if(my!==seqD)return;
+  if(!i){box.innerHTML='<p class="empty">This item could not be found.</p>';return}
+  const found=i.type==='found',mine=!!me&&i.user_id===me.id;
+  let claim=null;
+  if(me&&found&&!mine)claim=await run(sb.from('claims').select('status,admin_note').eq('item_id',i.id).eq('user_id',me.id).maybeSingle());
+  if(my!==seqD)return;
+
+  let note='',action='';
+  if(i.status==='returned')note=`<div class="note ok">${icon('check',20)}<span>This item has been returned to its owner.</span></div>`;
+  else if(mine){
+   note='<div class="note ok"><span>This is your report.</span></div>';
+   action=`<button class="btn primary" data-act="resolve" data-id="${i.id}">${found?'Mark as returned':'I found it — close report'}</button>`;
+  }else if(found&&claim){
+   note=claim.status==='approved'?`<div class="note ok">${icon('check',20)}<span>Your claim was approved. Collect it from ${esc(i.held_at||'the Security Desk')} and bring your ID.${claim.admin_note?' Note: '+esc(claim.admin_note):''}</span></div>`
+    :claim.status==='rejected'?`<div class="note"><span>Your claim was not approved.${claim.admin_note?' '+esc(claim.admin_note):''}</span></div>`
+    :'<div class="note"><span>Your claim is waiting for an administrator to review it.</span></div>';
+  }else if(found)action=`<button class="btn primary" data-act="claim" data-id="${i.id}">This is mine — Claim it</button>`;
+  else action=`<button class="btn primary" data-act="foundthis" data-id="${i.id}" data-title="${esc(i.title)}">I found this</button>`;
+
+  const heldSub={'Security Desk':'Main Gate · Open until 6 PM','Library Front Desk':'Bring your student or staff ID','I still have it':'An administrator will arrange the handover'}[i.held_at]||'';
+  const held=found&&i.held_at?`<div class="held">${icon('shield',24)}<div><b><span class="m-only">Held at ${esc(i.held_at)}</span><span class="d-only">Held safely at the ${esc(i.held_at)}</span></b><span>${esc(heldSub)}</span></div></div>`:'';
+
+  box.innerHTML=`<div class="hero ${esc(i.type)}">${thumbHtml(i,100)}</div>
+  <div style="display:grid;gap:16px;align-content:start">
+   <div class="title-row"><h1>${esc(i.title)}</h1><span class="badge ${esc(i.type)}">${cap(i.type)}</span></div>
+   <div class="info"><div>${icon('pin',20)}${esc(i.location)}</div><div>${icon('clock',20)}${cap(i.type)} ${esc(fmtWhen(i.event_date))}</div><div>${icon('other',20)}${esc(catBy(i.category).label)}</div></div>
+   ${i.description?`<p class="desc">${esc(i.description)}</p>`:''}
+   <p class="by">Reported by ${esc(String(i.reporter_name||'').split(' ')[0]||'a member')} · ${timeAgo(i.created_at)}</p>
+   ${held}${note}${action?`<div class="btns">${action}</div>`:''}
+  </div>`;
+  document.body.classList.toggle('on-details',!!action);
+ }catch(e){if(my===seqD)box.innerHTML=failBox(e)}
+}
+
+/* ---------- Report ---------- */
+const localNow=()=>new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,16);
+function renderForm(){
+ $$('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.kind===state.kind));
+ $('#whereLabel').textContent=state.kind==='lost'?'Where did you lose it?':'Where did you find it?';
+ $('#catChips').innerHTML=CATS.map(c=>`<button type="button" class="chip ${c.k===state.cat?'on':''}" data-cat="${c.k}">${c.name}</button>`).join('');
+}
+function openReport(){
+ renderForm();
+ const w=$('#when');w.max=localNow();if(!w.value)w.value=localNow();
+ if(state.prefill){$('#name').value=state.prefill;state.prefill=''}
+ $('#formErr').textContent='';
+}
+async function submitReport(e){
+ e.preventDefault();
+ const btn=$('.submit'),err=$('#formErr');
+ err.textContent='';
+ if(!me){pendingNext='report';go('profile');return}
+ const title=$('#name').value.trim(),loc=$('#where').value,file=$('#photo').files[0];
+ if(title.length<2)return void(err.textContent='Please say what the item is.');
+ if(!loc)return void(err.textContent='Please choose a campus location.');
+ if(file&&!/^image\/(jpeg|png|webp)$/.test(file.type))return void(err.textContent='Only JPG, PNG or WebP images are allowed.');
+ if(file&&file.size>3*1024*1024)return void(err.textContent='Image must be 3 MB or smaller.');
+ btn.disabled=true;btn.textContent='Submitting…';
+ try{
+  let image_path=null;
+  if(file){
+   const ext={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[file.type];
+   const key=`${me.id}/${Date.now()}-${Math.random().toString(36).slice(2,10)}.${ext}`;
+   const up=await sb.storage.from(BUCKET).upload(key,file,{contentType:file.type});
+   if(up.error)throw new Error(friendly(up.error));
+   image_path=sb.storage.from(BUCKET).getPublicUrl(key).data.publicUrl;
   }
-
-  const held = found && i.held_at ? `<div class="held">${icon('shield', 24)}<div><b><span class="m-only">Held at ${esc(i.held_at)}</span><span class="d-only">Held safely at ${esc(i.held_at)}</span></b>
-    <span>${i.held_at === 'Security Desk' ? 'Main Gate · Open until 6 PM' : i.held_at === 'I still have it' ? 'An administrator will arrange the handover' : 'Bring your student or staff ID'}</span></div></div>` : '';
-
-  view(`<section>
-    <div class="back"><a class="backbtn" href="#/browse" aria-label="Back">${icon('back', 20)}</a>Item details</div>
-    <div class="detail">
-      <div class="hero ${i.type}">${thumb(i, 100)}</div>
-      <div class="dcol">
-        <div class="title-row"><h1>${esc(i.title)}</h1><span class="badge ${i.type}">${cap(i.type)}</span></div>
-        <div class="info">
-          <div>${icon('pin', 20)}${esc(i.location)}</div>
-          <div>${icon('clock', 20)}${cap(i.type)} ${esc(fmtWhen(i.event_date))}</div>
-          <div>${icon('other', 20)}${esc(catLabel(i.category))}</div>
-        </div>
-        ${i.description ? `<p class="desc">${esc(i.description)}</p>` : ''}
-        <p class="by">Reported by ${esc(i.reporter)} · ${timeAgo(i.created_at)}</p>
-        ${held}${note}
-        ${actions ? `<div class="btns">${actions}</div>` : ''}
-      </div>
-    </div></section>`);
-  document.body.classList.toggle('has-bar', !!actions);
+  let when=new Date($('#when').value);
+  if(isNaN(when)||when>new Date(Date.now()+864e5))when=new Date();
+  const row=await run(sb.from('items').insert({type:state.kind,title,category:state.cat,location:loc,event_date:when.toISOString(),image_path,held_at:state.kind==='found'?'Security Desk':null}).select().single());
+  $('#form').reset();$('#upText').textContent='Add a photo';$('#upHint').textContent='JPG, PNG or WebP · up to 3 MB';
+  toast('Report submitted — thank you!');
+  go('details/'+row.id);
+ }catch(x){err.textContent=x.message}
+ finally{btn.disabled=false;btn.textContent='Submit report'}
 }
 
-let rk = 'found', rc = 'wallet';
-const kindText = () => (rk === 'lost' ? 'Where did you lose it?' : 'Where did you find it?');
-
-function report({ query }) {
-  rk = query.kind === 'lost' ? 'lost' : 'found'; rc = 'wallet';
-  const local = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-  view(`<section>
-    <div class="back"><a class="backbtn" href="#/" aria-label="Back">${icon('back', 20)}</a>Report an item</div>
-    <form class="layout" id="reportForm" novalidate>
-      <div class="fields">
-        <div class="seg f-seg" id="kindSeg"><button type="button" data-rkind="lost">I lost it</button><button type="button" data-rkind="found">I found it</button></div>
-        <div class="field f-name"><label for="title">What is it?</label><div class="input">${icon('search', 18)}<input id="title" maxlength="100" placeholder="e.g. Black wallet" value="${esc(query.title || '')}"></div></div>
-        <div class="field f-cat"><label>Category</label><div class="chips" id="rcats"></div></div>
-        <div class="two f-where">
-          <div class="field"><label for="location" id="whereLabel"></label><div class="input">${icon('pin', 18)}<select id="location"><option value="">Select a campus location</option>${options(meta.locations)}</select></div></div>
-          <div class="field"><label for="when">When?</label><div class="input">${icon('clock', 18)}<input id="when" type="datetime-local" value="${local}" max="${local}"></div></div>
-        </div>
-        <div class="field f-desc"><label for="desc">Details <span class="opt">(optional)</span></label><div class="input ta"><textarea id="desc" maxlength="500" rows="3" placeholder="Colour, brand, marks… Leave out serial or ID numbers."></textarea></div></div>
-        <div class="field f-held" id="heldField"><label for="held">Where is it now?</label><div class="input">${icon('shield', 18)}<select id="held">${options(meta.holding_points)}</select></div></div>
-        <p class="err f-err" id="formErr" role="alert"></p>
-        <button class="btn primary f-submit" type="submit">Submit report</button>
-      </div>
-      <div class="side">
-        <label class="upload f-upload" id="upload">${icon('camera', 32)}<span id="upText">Add a photo</span><small id="upHint">JPG, PNG or WebP · up to 3 MB</small><input type="file" id="image" accept="image/jpeg,image/png,image/webp" hidden></label>
-        <div class="tip">${icon('shield', 22)}<b>Keep private details private</b>Leave out serial numbers or ID details. We will ask the owner to describe them before handing it over.</div>
-      </div>
-    </form></section>`);
-  paintReport();
+/* ---------- My items ---------- */
+let seqM=0;
+async function loadMine(){
+ const my=++seqM;
+ $('#mineList').innerHTML='<p class="empty">Loading…</p>';
+ try{
+  const [items,claims]=await Promise.all([
+   run(sb.from('items').select('*').eq('user_id',me.id).order('id',{ascending:false})),
+   run(sb.from('claims').select('id,item_id,status,admin_note,created_at,items(title,category,image_path,held_at)').eq('user_id',me.id).order('id',{ascending:false}))]);
+  if(my!==seqM)return;
+  mineData={items,claims};paintMine();
+ }catch(e){if(my===seqM)$('#mineList').innerHTML=failBox(e)}
+}
+function paintMine(){
+ const {items,claims}=mineData;
+ const ok=claims.find(c=>c.status==='approved'),pend=claims.filter(c=>c.status==='pending').length;
+ $('#mineBanner').innerHTML=ok?`<div class="banner">${icon('check',20)}<div><b>Your claim was approved</b>Collect “${esc(ok.items&&ok.items.title)}” from ${esc((ok.items&&ok.items.held_at)||'the Security Desk')}.</div></div>`
+  :pend?`<div class="banner">${icon('clock',20)}<div><b>${pend} claim${pend>1?'s':''} awaiting review</b>An administrator will check your answers soon.</div></div>`:'';
+ $$('[data-mt]').forEach(b=>b.classList.toggle('on',b.dataset.mt===state.mt));
+ const stat=i=>i.status==='returned'?['Returned','returned']:i.type==='lost'?['Searching','lost']:['Awaiting owner','found'];
+ const list=items.filter(i=>(state.mt==='active')===(i.status==='open'));
+ $('#mineList').innerHTML=list.length?list.map(i=>{const [t,k]=stat(i);
+  return `<button class="card flat" data-open="${i.id}"><div class="thumb ${esc(i.type)}">${thumbHtml(i,26)}</div><div class="body"><h3>${esc(i.title)}</h3><div class="meta">Reported ${timeAgo(i.created_at)}</div></div><span class="badge ${k}">${t}</span></button>`}).join('')
+  :`<p class="empty">${state.mt==='active'?'You have no active reports.':'Nothing resolved yet.'}</p>`;
+ $('#claimsWrap').innerHTML=claims.length?`<h2 class="sub-h">My claims</h2><div class="list">${claims.map(c=>{const it=c.items||{};
+  return `<button class="card flat" data-open="${c.item_id}"><div class="thumb found">${thumbHtml({image_path:it.image_path,category:it.category},26)}</div><div class="body"><h3>${esc(it.title||'Item')}</h3><div class="meta">Claimed ${timeAgo(c.created_at)}</div></div><span class="badge ${esc(c.status)}">${cap(c.status)}</span></button>`}).join('')}</div>`:'';
 }
 
-function paintReport() {
-  $$('#kindSeg button').forEach((b) => b.classList.toggle('on', b.dataset.rkind === rk));
-  $('#whereLabel').textContent = kindText();
-  $('#heldField').hidden = rk !== 'found';
-  $('#rcats').innerHTML = meta.categories.map((c) => `<button type="button" class="chip ${c.key === rc ? 'on' : ''}" data-rcat="${c.key}">${c.name}</button>`).join('');
+/* ---------- Profile / login ---------- */
+function authHtml(){
+ const reg=state.am==='register';
+ const f=(id,label,type,extra='')=>`<div class="field"><label for="${id}">${label}</label><div class="input"><input id="${id}" type="${type}" ${extra}></div></div>`;
+ return `<div class="auth"><h1>${reg?'Create your account':'Welcome back'}</h1>
+  <p class="lead2">${reg?'Students and staff can report items and claim found ones.':'Log in to report items, claim belongings and track your reports.'}</p>
+  <div class="seg" id="authSeg"><button type="button" data-am="login" class="${reg?'':'on'}">Log in</button><button type="button" data-am="register" class="${reg?'on':''}">Create account</button></div>
+  <form id="authForm" class="form-col" novalidate>
+   ${reg?f('aname','Full name','text','autocomplete="name"'):''}
+   ${f('aemail','Email','email','autocomplete="email"')}
+   ${reg?'<div class="field"><label for="arole">I am a</label><div class="input"><select id="arole"><option value="student">Student</option><option value="staff">Staff member</option></select></div></div>':''}
+   ${f('apass','Password'+(reg?' (at least 8 characters)':''),'password',`autocomplete="${reg?'new-password':'current-password'}"`)}
+   <p class="err" id="authErr" role="alert"></p>
+   <button class="btn primary" type="submit">${reg?'Create account':'Log in'}</button>
+  </form></div>`;
 }
-
-async function submitReport(form) {
-  const err = $('#formErr'), btn = $('button[type=submit]', form);
-  err.textContent = '';
-  const title = $('#title').value.trim(), loc = $('#location').value, file = $('#image').files[0];
-  if (title.length < 2) return (err.textContent = 'Please say what the item is.');
-  if (!loc) return (err.textContent = 'Please choose a campus location.');
-  if (file && file.size > 3 * 1024 * 1024) return (err.textContent = 'Image must be 3 MB or smaller.');
-  const fd = new FormData();
-  fd.append('type', rk); fd.append('title', title); fd.append('category', rc); fd.append('location', loc);
-  fd.append('description', $('#desc').value.trim());
-  const when = new Date($('#when').value);
-  if (!isNaN(when)) fd.append('event_date', when.toISOString());
-  if (rk === 'found') fd.append('held_at', $('#held').value);
-  if (file) fd.append('image', file);
-  btn.disabled = true; btn.textContent = 'Submitting…';
-  try {
-    const { item } = await api.post('/items', fd);
-    toast('Report submitted. Thank you!');
-    location.hash = '#/item/' + item.id;
-  } catch (e) {
-    err.textContent = e.message;
-    btn.disabled = false; btn.textContent = 'Submit report';
+async function loadProfile(){
+ const box=$('#profileBody');
+ if(!me){box.innerHTML=authHtml();return}
+ box.innerHTML=`<div class="profile-wrap form-col">
+  <div class="who"><span class="avatar big">${esc(initials(me.name))}</span><div><h1>${esc(me.name)}</h1><p class="lead2">${esc(me.email)}</p></div></div>
+  <span class="badge found role">${cap(me.role)}</span>
+  <div class="pstats"><div class="pstat"><b id="sR">–</b>Reports</div><div class="pstat"><b id="sO">–</b>Still open</div><div class="pstat"><b id="sC">–</b>Claims</div></div>
+  ${me.role==='admin'?'<button class="btn primary" data-go="admin">Admin dashboard</button>':''}
+  <button class="btn ${me.role==='admin'?'outline':'primary'}" data-go="mine">My items &amp; claims</button>
+  <button class="btn outline" data-go="report">Report an item</button>
+  <button class="btn outline" data-act="logout">Log out</button></div>`;
+ try{
+  const head={count:'exact',head:true};
+  const [r,o,c]=await Promise.all([
+   count(sb.from('items').select('*',head).eq('user_id',me.id)),
+   count(sb.from('items').select('*',head).eq('user_id',me.id).eq('status','open')),
+   count(sb.from('claims').select('*',head).eq('user_id',me.id))]);
+  if(!me||!$('#sR'))return;
+  $('#sR').textContent=r;$('#sO').textContent=o;$('#sC').textContent=c;
+ }catch(e){toast(e.message)}
+}
+async function submitAuth(e){
+ e.preventDefault();
+ const reg=state.am==='register',err=$('#authErr'),btn=$('#authForm button[type=submit]');
+ err.textContent='';
+ const email=$('#aemail').value.trim().toLowerCase(),password=$('#apass').value;
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return void(err.textContent='Please enter a valid email address.');
+ if(!sb)return void(err.textContent='Could not connect to the database.');
+ let name='';
+ if(reg){
+  name=$('#aname').value.trim();
+  if(name.length<2||name.length>80)return void(err.textContent='Please enter your full name.');
+  if(password.length<8)return void(err.textContent='Password must be at least 8 characters.');
+ }else if(!password)return void(err.textContent='Please enter your password.');
+ btn.disabled=true;
+ try{
+  if(reg){
+   const {data,error}=await sb.auth.signUp({email,password,options:{data:{name,role:$('#arole').value==='staff'?'staff':'student'}}});
+   if(error)throw new Error(friendly(error));
+   if(!data.session){state.am='login';loadProfile();toast('Account created! Check your email to confirm it, then log in.');return}
+  }else{
+   const {error}=await sb.auth.signInWithPassword({email,password});
+   if(error)throw new Error(friendly(error));
   }
+  await loadMe();
+  toast(reg?'Welcome to Daystar Lost & Found!':'Logged in.');
+  const next=pendingNext||'profile';pendingNext=null;
+  go(next);
+ }catch(x){err.textContent=x.message;btn.disabled=false}
 }
 
-let mineTab = 'active';
-async function mine() {
-  const [{ items }, { claims }] = await Promise.all([api.get('/items/mine'), api.get('/claims/mine')]);
-  const approved = claims.find((c) => c.status === 'approved');
-  const pending = claims.filter((c) => c.status === 'pending').length;
-  const banner = approved ? `<div class="match">${icon('check', 20)}<div><b>Your claim was approved</b>Collect “${esc(approved.title)}” from ${esc(approved.held_at || 'the Security Desk')}.</div></div>`
-    : pending ? `<div class="match">${icon('clock', 20)}<div><b>${pending} claim${pending > 1 ? 's' : ''} awaiting review</b>An administrator will check your answers soon.</div></div>` : '';
-  const stat = (i) => i.status === 'returned' ? ['Returned', 'returned'] : i.type === 'lost' ? ['Searching', 'lost'] : ['Awaiting owner', 'found'];
-  const row = (i) => { const [t, k] = stat(i); return `<a class="card flat" href="#/item/${i.id}"><div class="thumb ${i.type}">${thumb(i, 26)}</div><div class="body"><h3>${esc(i.title)}</h3><div class="meta">Reported ${timeAgo(i.created_at)}</div></div><span class="badge ${k}">${t}</span></a>`; };
-  const claimRow = (c) => `<a class="card flat" href="#/item/${c.item_id}"><div class="thumb found">${c.image_path ? `<img src="${esc(c.image_path)}" alt="">` : icon(catIcon(c.category), 26)}</div><div class="body"><h3>${esc(c.title)}</h3><div class="meta">Claimed ${timeAgo(c.created_at)}</div></div><span class="badge ${c.status}">${cap(c.status)}</span></a>`;
-
-  const paint = () => {
-    const list = items.filter((i) => (mineTab === 'active') === (i.status === 'open'));
-    $('#mineList').innerHTML = list.length ? list.map(row).join('') : `<p class="empty">${mineTab === 'active' ? 'You have no active reports.' : 'Nothing resolved yet.'}</p>`;
-    $$('[data-mtab]').forEach((b) => b.classList.toggle('on', b.dataset.mtab === mineTab));
-  };
-  view(`<section class="stack narrow"><h1 class="page-h">My items</h1>${banner}
-    <div class="chips"><button class="chip" data-mtab="active">Active</button><button class="chip" data-mtab="resolved">Resolved</button></div>
-    <div class="list" id="mineList"></div>
-    ${claims.length ? `<h2 class="sub-h">My claims</h2><div class="list">${claims.map(claimRow).join('')}</div>` : ''}
-  </section>`);
-  paint();
-  mine.paint = paint;
-}
-
-function authView(mode) {
-  const reg = mode === 'register';
-  return () => {
-    view(`<section class="auth"><h1>${reg ? 'Create your account' : 'Welcome back'}</h1>
-      <p class="lead2">${reg ? 'Students and staff can report and claim items.' : 'Log in to report items and track your claims.'}</p>
-      <form id="${mode}Form" class="form-col" novalidate>
-        ${reg ? '<div class="field"><label for="name">Full name</label><div class="input"><input id="name" autocomplete="name"></div></div>' : ''}
-        <div class="field"><label for="email">Email</label><div class="input"><input id="email" type="email" autocomplete="email"></div></div>
-        ${reg ? '<div class="field"><label for="role">I am a</label><div class="input"><select id="role"><option value="student">Student</option><option value="staff">Staff member</option></select></div></div>' : ''}
-        <div class="field"><label for="password">Password${reg ? ' <span class="opt">(at least 8 characters)</span>' : ''}</label><div class="input"><input id="password" type="password" autocomplete="${reg ? 'new-password' : 'current-password'}"></div></div>
-        <p class="err" id="authErr" role="alert"></p>
-        <button class="btn primary" type="submit">${reg ? 'Create account' : 'Log in'}</button>
-      </form>
-      <p class="alt">${reg ? 'Already have an account? <a href="#/login">Log in</a>' : 'New here? <a href="#/register">Create an account</a>'}</p></section>`);
-  };
-}
-
-async function submitAuth(form, mode) {
-  const err = $('#authErr'), btn = $('button[type=submit]', form);
-  err.textContent = '';
-  const body = { email: $('#email').value, password: $('#password').value };
-  if (mode === 'register') { body.name = $('#name').value; body.role = $('#role').value; }
-  btn.disabled = true;
-  try {
-    me = (await api.post('/auth/' + mode, body)).user;
-    const next = pendingNext || '/';
-    pendingNext = null;
-    go('#' + next);
-  } catch (e) { err.textContent = e.message; btn.disabled = false; }
-}
-
-function profile() {
-  view(`<section class="auth"><div class="who"><span class="avatar big">${esc(initials(me.name))}</span><div><h1>${esc(me.name)}</h1><p class="lead2">${esc(me.email)}</p></div></div>
-    <span class="badge found role">${cap(me.role)}</span>
-    <div class="form-col"><a class="btn ghost" href="#/mine">My items &amp; claims</a>
-    ${me.role === 'admin' ? '<a class="btn ghost" href="#/admin">Admin dashboard</a>' : ''}
-    <button class="btn primary" data-act="logout">Log out</button></div></section>`);
-}
-
-let adminTab = 'claims', adminData = null;
-async function admin() {
-  const [{ stats }, { claims }, { items }] = await Promise.all([api.get('/admin/stats'), api.get('/admin/claims'), api.get('/admin/items')]);
-  adminData = { claims, items };
-  const stat = (n, l) => `<div class="stat"><b>${n}</b>${l}</div>`;
-  view(`<section class="stack"><h1 class="page-h">Admin dashboard</h1>
-    <div class="stats">${stat(stats.pendingClaims, 'Pending claims')}${stat(stats.open, 'Open reports')}${stat(stats.returned, 'Returned')}${stat(stats.items, 'Total reports')}${stat(stats.users, 'Users')}</div>
-    <div class="seg" id="adminTabs"><button data-tab="claims">Claims</button><button data-tab="items">Items</button></div>
-    <div class="list" id="adminBody"></div></section>`);
+/* ---------- Admin dashboard (items & claims management) ---------- */
+let seqA=0;
+async function loadAdmin(){
+ const my=++seqA;
+ $('#aBody').innerHTML='<p class="empty">Loading…</p>';
+ try{
+  const head={count:'exact',head:true};
+  const [users,total,open,returned,pending,claims,items]=await Promise.all([
+   count(sb.from('profiles').select('*',head)),
+   count(sb.from('items').select('*',head)),
+   count(sb.from('items').select('*',head).eq('status','open')),
+   count(sb.from('items').select('*',head).eq('status','returned')),
+   count(sb.from('claims').select('*',head).eq('status','pending')),
+   run(sb.from('claims').select('id,item_id,message,status,admin_note,created_at,items(title,category,image_path,held_at),profiles(name,email)').order('id',{ascending:false})),
+   run(sb.from('items').select('id,type,title,category,location,image_path,status,created_at,profiles(name,email)').order('id',{ascending:false}))]);
+  if(my!==seqA)return;
+  const pc={};claims.forEach(c=>{if(c.status==='pending')pc[c.item_id]=(pc[c.item_id]||0)+1});
+  claims.sort((a,b)=>(b.status==='pending')-(a.status==='pending'));
+  adminData={claims,items:items.map(i=>({...i,pending:pc[i.id]||0}))};
+  const st=(n,l)=>`<div class="stat"><b>${n}</b>${l}</div>`;
+  $('#aStats').innerHTML=st(pending,'Pending claims')+st(open,'Open reports')+st(returned,'Returned')+st(total,'Total reports')+st(users,'Users');
   paintAdmin();
+ }catch(e){if(my===seqA)$('#aBody').innerHTML=failBox(e)}
+}
+function paintAdmin(){
+ $$('#aTabs button').forEach(b=>b.classList.toggle('on',b.dataset.atab===state.at));
+ const {claims,items}=adminData;
+ $('#aBody').innerHTML=state.at==='claims'
+  ?(claims.length?claims.map(c=>{const it=c.items||{},p=c.profiles||{};
+    return `<div class="rowcard"><div class="thumb found sm">${thumbHtml({image_path:it.image_path,category:it.category},24)}</div>
+     <div class="main"><h3><a href="#details/${c.item_id}">${esc(it.title||'Item')}</a> <span class="badge ${esc(c.status)}">${cap(c.status)}</span></h3>
+     <p class="meta2">Claimed by ${esc(p.name||'Unknown')} (${esc(p.email||'')}) · ${timeAgo(c.created_at)}</p>
+     <blockquote>${esc(c.message)}</blockquote>${c.admin_note?`<p class="meta2">Note: ${esc(c.admin_note)}</p>`:''}</div>
+     ${c.status==='pending'?`<div class="racts"><button class="btn primary sm" data-act="approve" data-id="${c.id}">Approve</button><button class="btn outline sm" data-act="reject" data-id="${c.id}">Reject</button></div>`:''}</div>`}).join('')
+   :'<p class="empty">No claims yet.</p>')
+  :(items.length?items.map(i=>{const p=i.profiles||{};
+    return `<div class="rowcard"><div class="thumb ${esc(i.type)} sm">${thumbHtml(i,24)}</div>
+     <div class="main"><h3><a href="#details/${i.id}">${esc(i.title)}</a> <span class="badge ${esc(i.type)}">${cap(i.type)}</span></h3>
+     <p class="meta2">${esc(i.location)} · by ${esc(p.name||'Unknown')} (${esc(p.email||'')}) · ${timeAgo(i.created_at)}${i.pending?` · ${i.pending} pending claim${i.pending>1?'s':''}`:''}</p></div>
+     <div class="racts"><select class="sel" data-astatus="${i.id}" aria-label="Status"><option value="open" ${i.status==='open'?'selected':''}>Open</option><option value="returned" ${i.status==='returned'?'selected':''}>Returned</option></select>
+     <button class="btn danger sm" data-act="delete" data-id="${i.id}">Delete</button></div></div>`}).join('')
+   :'<p class="empty">No reports yet.</p>');
 }
 
-function paintAdmin() {
-  $$('#adminTabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === adminTab));
-  const { claims, items } = adminData;
-  $('#adminBody').innerHTML = adminTab === 'claims'
-    ? (claims.length ? claims.map((c) => `<div class="rowcard"><div class="thumb found sm">${c.image_path ? `<img src="${esc(c.image_path)}" alt="">` : icon(catIcon(c.category), 24)}</div>
-        <div class="main"><h3><a href="#/item/${c.item_id}">${esc(c.title)}</a> <span class="badge ${c.status}">${cap(c.status)}</span></h3>
-        <p class="meta2">Claimed by ${esc(c.claimant)} (${esc(c.claimant_email)}) · ${timeAgo(c.created_at)}</p>
-        <blockquote>${esc(c.message)}</blockquote>${c.admin_note ? `<p class="meta2">Note: ${esc(c.admin_note)}</p>` : ''}</div>
-        ${c.status === 'pending' ? `<div class="racts"><button class="btn primary sm" data-act="approve" data-id="${c.id}">Approve</button><button class="btn ghost sm" data-act="reject" data-id="${c.id}">Reject</button></div>` : ''}</div>`).join('')
-      : '<p class="empty">No claims yet.</p>')
-    : (items.length ? items.map((i) => `<div class="rowcard"><div class="thumb ${i.type} sm">${thumb(i, 24)}</div>
-        <div class="main"><h3><a href="#/item/${i.id}">${esc(i.title)}</a> <span class="badge ${i.type}">${cap(i.type)}</span></h3>
-        <p class="meta2">${esc(i.location)} · by ${esc(i.reporter)} (${esc(i.reporter_email)}) · ${timeAgo(i.created_at)}${i.pending_claims ? ` · ${i.pending_claims} pending claim(s)` : ''}</p></div>
-        <div class="racts"><select class="sel" data-act="status" data-id="${i.id}" aria-label="Status"><option value="open" ${i.status === 'open' ? 'selected' : ''}>Open</option><option value="returned" ${i.status === 'returned' ? 'selected' : ''}>Returned</option></select>
-        <button class="btn danger sm" data-act="delete" data-id="${i.id}">Delete</button></div></div>`).join('')
-      : '<p class="empty">No reports yet.</p>');
+/* ---------- Router ---------- */
+const VIEWS=['home','browse','details','report','mine','profile','admin'];
+function nav(){
+ const raw=location.hash.slice(1)||'home';
+ let [view,id]=raw.split('/');
+ if(!VIEWS.includes(view)||(view==='details'&&!/^\d+$/.test(id||'')))view='home';
+ if((view==='report'||view==='mine')&&!me){pendingNext=raw;toast('Please log in first.');go('profile');return}
+ if(view==='admin'){
+  if(!me){pendingNext='admin';toast('Please log in first.');go('profile');return}
+  if(me.role!=='admin'){toast('Administrators only.');go('home');return}
+ }
+ $$('.view').forEach(s=>s.classList.toggle('on',s.id===view));
+ document.body.classList.remove('on-details');
+ chrome(view==='details'?'browse':view);
+ paintUser();
+ window.scrollTo(0,0);
+ if(view==='home')loadHome();
+ else if(view==='browse'){$('#bq').value=state.bq;loadBrowse()}
+ else if(view==='details')showDetails(id);
+ else if(view==='report')openReport();
+ else if(view==='mine')loadMine();
+ else if(view==='profile')loadProfile();
+ else if(view==='admin')loadAdmin();
 }
 
-/* ------------------------------------------------------------------ router */
-const routes = [
-  [/^\/?$/, home, 'home'], [/^\/browse$/, browse, 'browse'], [/^\/item\/(\d+)$/, details, 'home'],
-  [/^\/report$/, report, 'report'], [/^\/mine$/, mine, 'mine'],
-  [/^\/login$/, authView('login'), 'profile'], [/^\/register$/, authView('register'), 'profile'],
-  [/^\/profile$/, profile, 'profile'], [/^\/admin$/, admin, 'admin'],
-];
-const needsAuth = ['report', 'mine', 'profile', 'admin'];
-let pendingNext = null;
-const go = (hash) => { if (location.hash === hash) router(); else location.hash = hash; };
-
-async function router() {
-  const raw = location.hash.slice(1) || '/';
-  const [path, qs] = raw.split('?');
-  const query = Object.fromEntries(new URLSearchParams(qs || ''));
-  const [re, fn, key] = routes.find(([r]) => r.test(path)) || routes[0];
-
-  if (needsAuth.includes(key) && !me && !/^\/(login|register)/.test(path)) {
-    pendingNext = raw; location.hash = '#/login'; return;
+/* ---------- Events ---------- */
+document.addEventListener('click',async e=>{
+ const t=e.target.closest('[data-go],[data-open],[data-hc],[data-bc],[data-type],[data-cat],[data-kind],[data-am],[data-mt],[data-atab],[data-act]');
+ if(!t)return;
+ const d=t.dataset;
+ try{
+  if(d.kind&&(t.closest('#seg')||d.go)){state.kind=d.kind;renderForm()}
+  if(d.go)go(d.go);
+  else if(d.open)go('details/'+d.open);
+  else if(d.hc!==undefined){state.hc=d.hc;loadHome()}
+  else if(d.bc!==undefined){state.bc=d.bc;loadBrowse()}
+  else if(d.type!==undefined){state.bt=d.type;loadBrowse()}
+  else if(d.cat){state.cat=d.cat;renderForm()}
+  else if(d.am){state.am=d.am;loadProfile()}
+  else if(d.mt){state.mt=d.mt;paintMine()}
+  else if(d.atab){state.at=d.atab;paintAdmin()}
+  else if(d.act==='claim'){
+   if(!me){pendingNext='details/'+d.id;toast('Log in to claim an item.');go('profile');return}
+   const message=await askText({title:'Claim this item',label:'Describe something only the owner would know (colour, contents, marks).',min:10,submit:'Send claim',placeholder:'e.g. Brown leather, a Daystar ID card and a 500 shilling note inside'});
+   if(message===null)return;
+   await run(sb.rpc('submit_claim',{p_item_id:+d.id,p_message:message}));
+   toast('Claim sent. An administrator will review it.');nav();
   }
-  if (key === 'admin' && (!me || me.role !== 'admin')) { toast('Administrators only.'); location.hash = '#/'; return; }
-  if (/^\/(login|register)$/.test(path) && me) { location.hash = '#/'; return; }
-
-  document.body.classList.remove('has-bar');
-  chrome(key);
-  try { await fn({ params: path.match(re).slice(1), query }); }
-  catch (e) { view(`<p class="empty">${esc(e.message)}</p>`); }
-  window.scrollTo(0, 0);
-}
-
-/* ------------------------------------------------------------------ events */
-document.addEventListener('click', async (e) => {
-  const el = e.target.closest('[data-cat],[data-type],[data-rcat],[data-rkind],[data-tab],[data-mtab],[data-act]');
-  if (!el) return;
-  const d = el.dataset;
-  try {
-    if (d.cat !== undefined) { ls.category = d.cat; paintChips(); await loadList(); }
-    else if (d.type !== undefined) { ls.type = d.type; $$('#typeSeg button').forEach((b) => b.classList.toggle('on', b.dataset.type === d.type)); await loadList(); }
-    else if (d.rcat) { rc = d.rcat; paintReport(); }
-    else if (d.rkind) { rk = d.rkind; paintReport(); }
-    else if (d.tab) { adminTab = d.tab; paintAdmin(); }
-    else if (d.mtab) { mineTab = d.mtab; mine.paint(); }
-    else if (d.act === 'claim') {
-      if (!me) { pendingNext = location.hash.slice(1); location.hash = '#/login'; return; }
-      const message = await askText({ title: 'Claim this item', label: 'Describe something only the owner would know (colour, contents, marks).', min: 10, submit: 'Send claim', placeholder: 'e.g. Brown leather, a Daystar ID card and a 500 shilling note inside' });
-      if (message === null) return;
-      await api.post('/claims', { item_id: +d.id, message });
-      toast('Claim sent. An administrator will review it.'); router();
-    }
-    else if (d.act === 'resolve') {
-      if (!confirm('Close this report?')) return;
-      await api.patch(`/items/${d.id}/resolve`); toast('Report closed.'); router();
-    }
-    else if (d.act === 'logout') { await api.post('/auth/logout'); me = null; toast('Logged out.'); go('#/'); }
-    else if (d.act === 'approve') { await api.patch(`/admin/claims/${d.id}`, { status: 'approved' }); toast('Claim approved. Item marked returned.'); admin(); }
-    else if (d.act === 'reject') {
-      const note = await askText({ title: 'Reject this claim', label: 'Reason shown to the claimant (optional).', submit: 'Reject claim' });
-      if (note === null) return;
-      await api.patch(`/admin/claims/${d.id}`, { status: 'rejected', note }); toast('Claim rejected.'); admin();
-    }
-    else if (d.act === 'delete') {
-      if (!confirm('Delete this report and its claims permanently?')) return;
-      await api.del(`/admin/items/${d.id}`); toast('Report deleted.'); admin();
-    }
-  } catch (err) { toast(err.message); }
+  else if(d.act==='resolve'){
+   if(!confirm('Close this report?'))return;
+   await run(sb.rpc('resolve_item',{p_item_id:+d.id}));
+   toast('Report closed.');nav();
+  }
+  else if(d.act==='foundthis'){state.kind='found';state.prefill=d.title||'';go('report')}
+  else if(d.act==='approve'){await run(sb.rpc('decide_claim',{p_claim_id:+d.id,p_status:'approved',p_note:null}));toast('Claim approved. Item marked returned.');loadAdmin()}
+  else if(d.act==='reject'){
+   const note=await askText({title:'Reject this claim',label:'Reason shown to the claimant (optional).',submit:'Reject claim'});
+   if(note===null)return;
+   await run(sb.rpc('decide_claim',{p_claim_id:+d.id,p_status:'rejected',p_note:note||null}));toast('Claim rejected.');loadAdmin();
+  }
+  else if(d.act==='delete'){
+   if(!confirm('Delete this report and its claims permanently?'))return;
+   const row=await run(sb.from('items').select('image_path').eq('id',+d.id).maybeSingle());
+   await run(sb.from('items').delete().eq('id',+d.id));
+   const key=row&&row.image_path&&row.image_path.split('/'+BUCKET+'/')[1];
+   if(key)try{await sb.storage.from(BUCKET).remove([decodeURIComponent(key)])}catch{}
+   toast('Report deleted.');loadAdmin();
+  }
+  else if(d.act==='logout'){await sb.auth.signOut();me=null;pendingNext=null;toast('Logged out.');go('home')}
+ }catch(err){toast(err.message)}
 });
 
-document.addEventListener('change', async (e) => {
-  const el = e.target;
-  if (el.id === 'image') {
-    const f = el.files[0];
-    $('#upText').textContent = f ? f.name : 'Add a photo';
-    $('#upHint').textContent = f ? `${(f.size / 1024).toFixed(0)} KB · click to change` : 'JPG, PNG or WebP · up to 3 MB';
-  } else if (el.dataset && el.dataset.act === 'status') {
-    try { await api.patch(`/admin/items/${el.dataset.id}`, { status: el.value }); toast('Status updated.'); }
-    catch (err) { toast(err.message); }
-  }
+document.addEventListener('change',async e=>{
+ const el=e.target;
+ if(el.dataset&&el.dataset.astatus){
+  try{await run(sb.from('items').update({status:el.value}).eq('id',+el.dataset.astatus));toast('Status updated.');loadAdmin()}
+  catch(err){toast(err.message)}
+ }
+});
+let tq,tb;
+$('#q').addEventListener('input',e=>{clearTimeout(tq);tq=setTimeout(()=>{state.q=e.target.value.trim();loadHome()},250)});
+$('#bq').addEventListener('input',e=>{clearTimeout(tb);tb=setTimeout(()=>{state.bq=e.target.value.trim();loadBrowse()},250)});
+$('#form').addEventListener('submit',submitReport);
+document.addEventListener('submit',e=>{if(e.target.id==='authForm')submitAuth(e)});
+$('#photo').addEventListener('change',e=>{
+ const f=e.target.files[0];
+ $('#upText').textContent=f?f.name:'Add a photo';
+ $('#upHint').textContent=f?`${Math.max(1,Math.round(f.size/1024))} KB · click to change`:'JPG, PNG or WebP · up to 3 MB';
 });
 
-document.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const id = e.target.id;
-  if (id === 'reportForm') submitReport(e.target);
-  else if (id === 'loginForm') submitAuth(e.target, 'login');
-  else if (id === 'registerForm') submitAuth(e.target, 'register');
-});
+/* Search placeholder: short on laptop, descriptive on phone (per design) */
+const ph=()=>{$('#q').placeholder=mq.matches?'Search':'Search keys, phone, wallet…'};
+mq.addEventListener('change',()=>{ph();if($('#home').classList.contains('on'))loadHome()});
 
-desktop.addEventListener('change', () => { const q = $('#q'); if (q) q.placeholder = placeholder(); });
-
-/* -------------------------------------------------------------------- boot */
-(async function boot() {
-  $('#logoMark').innerHTML = icon('star', 22, '#F2B705');
-  $('#helpCard').innerHTML = `${icon('help', 22)}<b>Need help?</b>Visit the Security Office, Main Gate. Open 8 AM – 6 PM.`;
-  if (!SB_CONFIGURED) {
-    view(`<section class="auth"><h1>One setup step left</h1>
-      <p class="lead2">This app needs a Supabase project. Open <b>index.html</b> in a text editor and paste your <b>Project URL</b> and <b>anon key</b> into the two lines at the top of the script, then reload.</p>
-      <p class="lead2">Steps are in README.md.</p></section>`);
-    return;
-  }
-  try { meta = await api.get('/meta'); } catch { toast('Could not reach the server.'); }
-  try { me = (await api.get('/auth/me')).user; } catch { /* logged out */ }
-  addEventListener('hashchange', router);
-  router();
+/* ---------- Init ---------- */
+(async function init(){
+ hydrate();ph();renderForm();
+ try{await loadMe()}catch(e){console.error(e)}
+ addEventListener('hashchange',nav);
+ nav();
 })();
 
 </script>
