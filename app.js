@@ -114,7 +114,7 @@ const P={
  card:'<rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/>',msg:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
  laptop:'<path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/>',
  moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
-sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-15.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2M20 12h2m-15.07 7.07 1.41-1.41M17.66 6.34l1.41-1.41"/>'
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-15.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2M20 12h2m-15.07 7.07 1.41-1.41M17.66 6.34l1.41-1.41"/>'
 };
 const icon=(n,s=20,c='currentColor')=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]||P.other}</svg>`;
 const hydrate=(r=document)=>r.querySelectorAll('[data-icon]').forEach(e=>{e.insertAdjacentHTML('afterbegin',icon(e.dataset.icon,+e.dataset.size||20,e.dataset.color||'currentColor'));e.removeAttribute('data-icon')});
@@ -157,7 +157,6 @@ const iconFor=i=>{const t=String(i.title||'').toLowerCase();return(!i.category||
 const thumbHtml=(i,s)=>i.image_path?`<img src="${esc(i.image_path)}" alt="">`:icon(iconFor(i),s);
 const card=i=>`<button class="card" data-open="${i.id}"><div class="thumb ${esc(i.type)}">${thumbHtml(i,32)}</div><div class="body"><div class="badge-line"><span class="badge ${esc(i.type)}">${cap(i.type)}</span><span class="when">${timeAgo(i.created_at)}</span></div><h3>${esc(i.title)}</h3><div class="meta">${icon('pin',14)}${esc(i.location)}<span class="mobile-time"> · ${timeAgo(i.created_at)}</span></div></div></button>`;
 
-
 function setTheme(t){
  document.documentElement.dataset.theme=t;
  try{localStorage.setItem('eastlands_theme',t)}catch{}
@@ -165,6 +164,7 @@ function setTheme(t){
  $('#themeBtn').innerHTML=`${icon(dark?'sun':'moon',18)}<span>${dark?'Light mode':'Dark mode'}</span>`;
  $('#themeBtnM').innerHTML=icon(dark?'sun':'moon',18);
 }
+
 function chrome(active){
  $('#helpTxt').textContent=active==='home'?'Visit the Operations office, Main Building. Open 8 AM – 6 PM.':'Visit the Security Office, Main Gate. Open 8 AM – 6 PM.';
  const lab=(k,l)=>k==='profile'&&!me?'Log in':l;
@@ -303,8 +303,8 @@ function nav(){
  window.scrollTo(0,0);requestAnimationFrame(()=>window.scrollTo(0,0));
  ({home:loadHome,browse:()=>{$('#bq').value=state.bq;loadBrowse()},details:()=>showDetails(id),report:openReport,mine:loadMine,profile:loadProfile,admin:loadAdmin})[view]();
 }
+
 document.addEventListener('click',async e=>{
- else if(d.act==='theme')setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
  const t=e.target.closest('[data-go],[data-open],[data-hc],[data-bc],[data-type],[data-cat],[data-kind],[data-am],[data-mt],[data-atab],[data-act]');if(!t)return;
  const d=t.dataset;
  try{
@@ -313,6 +313,7 @@ document.addEventListener('click',async e=>{
   else if(d.hc!==undefined){state.hc=d.hc;loadHome()}else if(d.bc!==undefined){state.bc=d.bc;loadBrowse()}
   else if(d.type!==undefined){state.bt=d.type;loadBrowse()}else if(d.cat){state.cat=d.cat;renderForm()}
   else if(d.am){state.am=d.am;loadProfile()}else if(d.mt){state.mt=d.mt;loadMine()}else if(d.atab){state.at=d.atab;loadAdmin()}
+  else if(d.act==='theme')setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
   else if(d.act==='message')toast('Direct messages are not available yet. Tap “This is mine — Claim it” and an administrator will connect you with the finder.');
   else if(d.act==='claim'){
    if(!me)return void(pendingNext='details/'+d.id,toast('Log in to claim an item.'),go('profile'));
@@ -347,4 +348,10 @@ box.ondrop=e=>{const f=e.dataTransfer?.files[0];if(f){const dt=new DataTransfer(
 const ph=()=>{$('#q').placeholder=mq.matches?'Search':'Search keys, phone, wallet…'};
 mq.addEventListener('change',()=>{ph();if($('#home').classList.contains('on'))loadHome()});
 
-(async()=>{hydrate();setTheme((()=>{try{return localStorage.getItem('eastlands_theme')}catch{}})()||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));ph();renderForm();try{await DB.init();me=DB.currentUser()}catch(e){console.error(e)}addEventListener('hashchange',nav);nav()})();
+(async()=>{
+ hydrate();
+ setTheme((()=>{try{return localStorage.getItem('eastlands_theme')}catch{}})()||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));
+ ph();renderForm();
+ try{await DB.init();me=DB.currentUser()}catch(e){console.error(e)}
+ addEventListener('hashchange',nav);nav();
+})();
