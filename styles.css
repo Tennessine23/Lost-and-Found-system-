@@ -1,7 +1,11 @@
 :root{
   --navy:#C81E25;--navy-l:#FCE8E9;--gold:#F8C325;--gold-l:#FFF7DB;--gold-d:#7A5600;
-  --ink:#0A0A0A;--sub:#52525B;--line:#E4E4E7;--bg:#FAFAFA;--white:#fff;
+  --ink:#0A0A0A;--sub:#52525B;--line:#E4E4E7;--bg:#FAFAFA;--white:#fff;--seg:#E4E4E7;
   --font:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+[data-theme="dark"]{
+  --navy:#E12B32;--navy-l:#331113;--gold:#F8C325;--gold-l:#332705;--gold-d:#F8C325;
+  --ink:#F4F4F5;--sub:#A1A1AA;--line:#27272A;--bg:#0A0A0A;--white:#141414;--seg:#1F1F23;
 }
 *{box-sizing:border-box;margin:0}
 body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.4}
@@ -90,7 +94,7 @@ h1,.page-h{font-size:28px;line-height:1.2;font-weight:700}
 .card.flat .badge{margin-left:auto;white-space:nowrap}
 .meta{display:flex;align-items:center;gap:6px;color:var(--sub);font-size:13px}
 .card .when{display:none;color:var(--sub);font-size:12px}
-.empty{padding:40px 0;text-align:center;color:var(--sub);grid-column:1/-1}
+.seg{display:flex;background:var(--seg);border-radius:14px;padding:4px;order:1}
 
 /* Details & Buttons */
 .detail,.detail>div{display:grid;gap:16px}
@@ -101,6 +105,11 @@ h1,.page-h{font-size:28px;line-height:1.2;font-weight:700}
 .info div{display:flex;gap:12px;align-items:center;font-weight:500}
 .info svg{color:var(--navy)}
 .desc{color:var(--sub);font-size:14px;line-height:22px}
+.theme-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--white);color:var(--ink);font-size:13px;font-weight:600;justify-content:center}
+.theme-btn:hover{border-color:var(--navy)}
+.topbar .theme-btn{padding:11px 14px;border-radius:14px}
+@media (min-width:900px){.topbar .theme-btn{display:none}}
+.input input,.input select{flex:1;border:0;outline:0;padding:15px 0;background:none;min-width:0;color-scheme:light dark}
 .upload.drag{background:#F8D0D2}.upload small{display:none;font-weight:400;font-size:12px}
 .held b{display:block;font-size:14px}.held span{font-size:13px}
 .held>.m-only{display:inline-flex}.held>.d-only{display:none}
