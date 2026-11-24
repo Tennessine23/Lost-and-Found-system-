@@ -112,7 +112,9 @@ const P={
  shield:'<path d="M20 13c0 5-3.5 7.5-7.7 9a1 1 0 0 1-.6 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1.2 1.2 0 0 1 1.6 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
  check:'<path d="M20 6 9 17l-5-5"/>',bottle:'<path d="M10 2h4"/><path d="M10 2v3L8 8v13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V8l-2-3V2"/><path d="M8 12h8"/>',
  card:'<rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/>',msg:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
- laptop:'<path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/>'
+ laptop:'<path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/>',
+ moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-15.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2M20 12h2m-15.07 7.07 1.41-1.41M17.66 6.34l1.41-1.41"/>'
 };
 const icon=(n,s=20,c='currentColor')=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]||P.other}</svg>`;
 const hydrate=(r=document)=>r.querySelectorAll('[data-icon]').forEach(e=>{e.insertAdjacentHTML('afterbegin',icon(e.dataset.icon,+e.dataset.size||20,e.dataset.color||'currentColor'));e.removeAttribute('data-icon')});
@@ -155,6 +157,14 @@ const iconFor=i=>{const t=String(i.title||'').toLowerCase();return(!i.category||
 const thumbHtml=(i,s)=>i.image_path?`<img src="${esc(i.image_path)}" alt="">`:icon(iconFor(i),s);
 const card=i=>`<button class="card" data-open="${i.id}"><div class="thumb ${esc(i.type)}">${thumbHtml(i,32)}</div><div class="body"><div class="badge-line"><span class="badge ${esc(i.type)}">${cap(i.type)}</span><span class="when">${timeAgo(i.created_at)}</span></div><h3>${esc(i.title)}</h3><div class="meta">${icon('pin',14)}${esc(i.location)}<span class="mobile-time"> · ${timeAgo(i.created_at)}</span></div></div></button>`;
 
+
+function setTheme(t){
+ document.documentElement.dataset.theme=t;
+ try{localStorage.setItem('eastlands_theme',t)}catch{}
+ const dark=t==='dark';
+ $('#themeBtn').innerHTML=`${icon(dark?'sun':'moon',18)}<span>${dark?'Light mode':'Dark mode'}</span>`;
+ $('#themeBtnM').innerHTML=icon(dark?'sun':'moon',18);
+}
 function chrome(active){
  $('#helpTxt').textContent=active==='home'?'Visit the Operations office, Main Building. Open 8 AM – 6 PM.':'Visit the Security Office, Main Gate. Open 8 AM – 6 PM.';
  const lab=(k,l)=>k==='profile'&&!me?'Log in':l;
@@ -293,8 +303,8 @@ function nav(){
  window.scrollTo(0,0);requestAnimationFrame(()=>window.scrollTo(0,0));
  ({home:loadHome,browse:()=>{$('#bq').value=state.bq;loadBrowse()},details:()=>showDetails(id),report:openReport,mine:loadMine,profile:loadProfile,admin:loadAdmin})[view]();
 }
-
 document.addEventListener('click',async e=>{
+ else if(d.act==='theme')setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
  const t=e.target.closest('[data-go],[data-open],[data-hc],[data-bc],[data-type],[data-cat],[data-kind],[data-am],[data-mt],[data-atab],[data-act]');if(!t)return;
  const d=t.dataset;
  try{
@@ -337,4 +347,4 @@ box.ondrop=e=>{const f=e.dataTransfer?.files[0];if(f){const dt=new DataTransfer(
 const ph=()=>{$('#q').placeholder=mq.matches?'Search':'Search keys, phone, wallet…'};
 mq.addEventListener('change',()=>{ph();if($('#home').classList.contains('on'))loadHome()});
 
-(async()=>{hydrate();ph();renderForm();try{await DB.init();me=DB.currentUser()}catch(e){console.error(e)}addEventListener('hashchange',nav);nav()})();
+(async()=>{hydrate();setTheme((()=>{try{return localStorage.getItem('eastlands_theme')}catch{}})()||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));ph();renderForm();try{await DB.init();me=DB.currentUser()}catch(e){console.error(e)}addEventListener('hashchange',nav);nav()})();
